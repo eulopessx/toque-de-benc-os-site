@@ -1,0 +1,138 @@
+import { Link } from 'react-router-dom'
+import { formatPrice } from '../data/storeData'
+import { useCart } from '../context/CartContext'
+
+export default function CartPage() {
+  const {
+    cartItems,
+    cartTotal,
+    removeFromCart,
+    increaseQuantity,
+    decreaseQuantity,
+    clearCart,
+  } = useCart()
+
+  return (
+    <main className="mx-auto max-w-7xl px-4 py-10 lg:px-8 lg:py-14">
+      <div className="mb-8">
+        <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a835f]">
+          Carrinho
+        </div>
+        <h1 className="mt-4 text-3xl font-semibold text-[#24384d] sm:text-4xl">
+          Seus produtos selecionados
+        </h1>
+      </div>
+
+      {cartItems.length === 0 ? (
+        <div className="rounded-[2rem] border border-[#ddd0c1] bg-white/80 p-10 text-center shadow-[0_14px_40px_rgba(36,56,77,0.05)]">
+          <h2 className="text-2xl font-semibold text-[#24384d]">
+            Seu carrinho está vazio
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#5d6d7d] sm:text-base">
+            Explore o catálogo e adicione os produtos que mais combinam com sua loja.
+          </p>
+          <Link
+            to="/catalogo"
+            className="mt-6 inline-block rounded-full bg-[#24384d] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+          >
+            Ir para o catálogo
+          </Link>
+        </div>
+      ) : (
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+          <section className="space-y-4">
+            {cartItems.map((item) => (
+              <div
+                key={item.id}
+                className="grid gap-4 rounded-[1.75rem] border border-[#ddd0c1] bg-white p-5 shadow-[0_10px_30px_rgba(36,56,77,0.04)] sm:grid-cols-[120px_1fr]"
+              >
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="h-32 w-full rounded-[1.25rem] object-cover sm:w-[120px]"
+                />
+
+                <div className="flex flex-col justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-semibold text-[#24384d]">{item.name}</h3>
+                    <p className="mt-2 text-sm text-[#5d6d7d]">
+                      {formatPrice(item.price)} cada
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      onClick={() => decreaseQuantity(item.id)}
+                      className="rounded-full border border-[#d8cbb9] px-4 py-2 text-sm font-semibold text-[#24384d]"
+                    >
+                      -
+                    </button>
+
+                    <span className="min-w-[40px] text-center text-sm font-semibold text-[#24384d]">
+                      {item.quantity}
+                    </span>
+
+                    <button
+                      onClick={() => increaseQuantity(item.id)}
+                      className="rounded-full border border-[#d8cbb9] px-4 py-2 text-sm font-semibold text-[#24384d]"
+                    >
+                      +
+                    </button>
+
+                    <button
+                      onClick={() => removeFromCart(item.id)}
+                      className="rounded-full bg-[#efe3d4] px-4 py-2 text-sm font-semibold text-[#24384d]"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </section>
+
+          <aside className="h-max rounded-[2rem] border border-[#ddd0c1] bg-white/80 p-8 shadow-[0_14px_40px_rgba(36,56,77,0.05)]">
+            <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a835f]">
+              Resumo do pedido
+            </div>
+
+            <div className="mt-6 flex items-center justify-between border-b border-[#eadfce] pb-4">
+              <span className="text-sm text-[#5d6d7d]">Subtotal</span>
+              <span className="text-lg font-semibold text-[#24384d]">
+                {formatPrice(cartTotal)}
+              </span>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between border-b border-[#eadfce] pb-4">
+              <span className="text-sm text-[#5d6d7d]">Envio</span>
+              <span className="text-sm font-semibold text-[#24384d]">
+                Calculado depois
+              </span>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-base font-semibold text-[#24384d]">Total</span>
+              <span className="text-2xl font-bold text-[#24384d]">
+                {formatPrice(cartTotal)}
+              </span>
+            </div>
+
+            <Link
+              to="/checkout"
+              className="mt-8 block w-full rounded-full bg-[#24384d] px-6 py-4 text-center text-sm font-semibold text-white transition hover:opacity-90"
+            >
+              Finalizar pedido
+            </Link>
+
+            <button
+              onClick={clearCart}
+              className="mt-3 w-full rounded-full border border-[#d8cbb9] px-6 py-4 text-sm font-semibold text-[#24384d] transition hover:bg-white"
+            >
+              Limpar carrinho
+            </button>
+          </aside>
+        </div>
+      )}
+    </main>
+  )
+}
