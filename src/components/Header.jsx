@@ -8,7 +8,6 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { cartCount } = useCart()
   const { user, isAdmin, signOut, loading } = useAuth()
-console.log('AUTH HEADER:', { loading, user, isAdmin })
 
   const navItems = [
     { to: '/', label: 'Início' },
@@ -25,11 +24,8 @@ console.log('AUTH HEADER:', { loading, user, isAdmin })
       console.error('Erro ao sair:', error)
     }
   }
-<div className="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">
-  {loading ? 'loading' : user ? `logado: ${user.email}` : 'sem login'}
-</div>
+
   return (
-    
     <header className="sticky top-0 z-40 border-b border-[#e4d7c9] bg-[#f7f3ee]/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 lg:px-8">
         <Link
@@ -81,39 +77,47 @@ console.log('AUTH HEADER:', { loading, user, isAdmin })
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          {user && isAdmin ? (
-            <Link
-              to="/admin"
-              className="rounded-full border border-[#c99d4d] bg-[#fff8ef] px-4 py-2 text-sm font-medium text-[#9a6b1f] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#fff2df] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c99d4d]/30 focus-visible:ring-offset-2 active:scale-[0.97]"
-            >
-              Admin
-            </Link>
-          ) : null}
-
-          {user ? (
-            <>
-              <Link
-                to="/acesso"
-                className="rounded-full border border-[#d8cbb9] bg-white/70 px-4 py-2 text-sm font-medium text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cab8a0] hover:bg-white hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
-              >
-                Minha conta
-              </Link>
-
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="rounded-full border border-[#e4cfc7] bg-[#fff7f5] px-4 py-2 text-sm font-medium text-[#8c4b3b] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#fff0eb] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8c4b3b]/20 focus-visible:ring-offset-2 active:scale-[0.97]"
-              >
-                Sair
-              </button>
-            </>
+          {loading ? (
+            <div className="rounded-full border border-[#ddd0c1] bg-white/70 px-4 py-2 text-sm font-medium text-[#7a8490]">
+              Carregando...
+            </div>
           ) : (
-            <Link
-              to="/acesso"
-              className="rounded-full border border-[#d8cbb9] bg-white/70 px-4 py-2 text-sm font-medium text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cab8a0] hover:bg-white hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
-            >
-              Entrar
-            </Link>
+            <>
+              {user && isAdmin ? (
+                <Link
+                  to="/admin"
+                  className="rounded-full border border-[#c99d4d] bg-[#fff8ef] px-4 py-2 text-sm font-medium text-[#9a6b1f] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#fff2df] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c99d4d]/30 focus-visible:ring-offset-2 active:scale-[0.97]"
+                >
+                  Admin
+                </Link>
+              ) : null}
+
+              {user ? (
+                <>
+                  <Link
+                    to="/acesso"
+                    className="rounded-full border border-[#d8cbb9] bg-white/70 px-4 py-2 text-sm font-medium text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cab8a0] hover:bg-white hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
+                  >
+                    Minha conta
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="rounded-full border border-[#e4cfc7] bg-[#fff7f5] px-4 py-2 text-sm font-medium text-[#8c4b3b] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#fff0eb] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8c4b3b]/20 focus-visible:ring-offset-2 active:scale-[0.97]"
+                  >
+                    Sair
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/acesso"
+                  className="rounded-full border border-[#d8cbb9] bg-white/70 px-4 py-2 text-sm font-medium text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cab8a0] hover:bg-white hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
+                >
+                  Entrar
+                </Link>
+              )}
+            </>
           )}
 
           <Link
@@ -151,42 +155,50 @@ console.log('AUTH HEADER:', { loading, user, isAdmin })
         }`}
       >
         <div className="flex flex-col gap-3">
-          {user && isAdmin ? (
-            <Link
-              to="/admin"
-              onClick={() => setMobileOpen(false)}
-              className="rounded-2xl border border-[#ead4ad] bg-[#fff8ef] px-4 py-3 text-sm font-semibold text-[#9a6b1f] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_10px_22px_rgba(36,56,77,0.06)]"
-            >
-              Painel admin
-            </Link>
-          ) : null}
-
-          {user ? (
-            <>
-              <Link
-                to="/acesso"
-                onClick={() => setMobileOpen(false)}
-                className="rounded-2xl border border-[#e6dacd] bg-white px-4 py-3 text-sm font-semibold text-[#24384d] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#d4c2ab] hover:shadow-[0_10px_22px_rgba(36,56,77,0.06)]"
-              >
-                Minha conta
-              </Link>
-
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="rounded-2xl border border-[#ead4cd] bg-[#fff7f5] px-4 py-3 text-sm font-semibold text-[#8c4b3b] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_10px_22px_rgba(36,56,77,0.06)]"
-              >
-                Sair
-              </button>
-            </>
+          {loading ? (
+            <div className="rounded-2xl border border-[#e6dacd] bg-white px-4 py-3 text-sm font-semibold text-[#7a8490]">
+              Carregando...
+            </div>
           ) : (
-            <Link
-              to="/acesso"
-              onClick={() => setMobileOpen(false)}
-              className="rounded-2xl border border-[#e6dacd] bg-white px-4 py-3 text-sm font-semibold text-[#24384d] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#d4c2ab] hover:shadow-[0_10px_22px_rgba(36,56,77,0.06)]"
-            >
-              Entrar
-            </Link>
+            <>
+              {user && isAdmin ? (
+                <Link
+                  to="/admin"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-2xl border border-[#ead4ad] bg-[#fff8ef] px-4 py-3 text-sm font-semibold text-[#9a6b1f] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_10px_22px_rgba(36,56,77,0.06)]"
+                >
+                  Painel admin
+                </Link>
+              ) : null}
+
+              {user ? (
+                <>
+                  <Link
+                    to="/acesso"
+                    onClick={() => setMobileOpen(false)}
+                    className="rounded-2xl border border-[#e6dacd] bg-white px-4 py-3 text-sm font-semibold text-[#24384d] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#d4c2ab] hover:shadow-[0_10px_22px_rgba(36,56,77,0.06)]"
+                  >
+                    Minha conta
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="rounded-2xl border border-[#ead4cd] bg-[#fff7f5] px-4 py-3 text-sm font-semibold text-[#8c4b3b] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_10px_22px_rgba(36,56,77,0.06)]"
+                  >
+                    Sair
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/acesso"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-2xl border border-[#e6dacd] bg-white px-4 py-3 text-sm font-semibold text-[#24384d] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#d4c2ab] hover:shadow-[0_10px_22px_rgba(36,56,77,0.06)]"
+                >
+                  Entrar
+                </Link>
+              )}
+            </>
           )}
 
           {navItems.map((item) => (
