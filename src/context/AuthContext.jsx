@@ -3,6 +3,12 @@ import { supabase } from '../lib/supabaseClient'
 
 const AuthContext = createContext(null)
 
+function timeoutPromise(ms = 5000) {
+  return new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Timeout ao verificar admin')), ms)
+  )
+}
+
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [user, setUser] = useState(null)
@@ -16,11 +22,16 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const { data, error } = await supabase
+      const adminQuery = supabase
         .from('admin_users')
         .select('*')
         .eq('email', currentUser.email)
         .maybeSingle()
+
+      const { data, error } = await Promise.race([
+        adminQuery,
+        timeoutPromise(5000),
+      ])
 
       if (error) {
         console.error('Erro ao verificar admin:', error.message)
@@ -42,7 +53,7 @@ export function AuthProvider({ children }) {
         })
       }
     } catch (error) {
-      console.error('Erro inesperado ao verificar admin:', error)
+      console.error('Falha/timeout na verificação de admin:', error)
       setProfile({
         id: currentUser.id,
         email: currentUser.email,
@@ -52,16 +63,16 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    let active = true
+    let mounted = true
 
-    async function initializeAuth() {
+    async function init() {
       try {
         const {
           data: { session: currentSession },
           error,
         } = await supabase.auth.getSession()
 
-        if (!active) return
+        if (!mounted) return
 
         if (error) {
           console.error('Erro ao carregar sessão:', error.message)
@@ -81,24 +92,22 @@ export function AuthProvider({ children }) {
           setProfile(null)
         }
       } catch (error) {
-        console.error('Erro no initializeAuth:', error)
-        if (!active) return
+        console.error('Erro no init do auth:', error)
+        if (!mounted) return
         setSession(null)
         setUser(null)
         setProfile(null)
       } finally {
-        if (active) {
-          setLoading(false)
-        }
+        if (mounted) setLoading(false)
       }
     }
 
-    initializeAuth()
+    init()
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      if (!active) return
+      if (!mounted) return
 
       setSession(newSession)
       setUser(newSession?.user ?? null)
@@ -109,13 +118,11 @@ export function AuthProvider({ children }) {
         setProfile(null)
       }
 
-      if (active) {
-        setLoading(false)
-      }
+      if (mounted) setLoading(false)
     })
 
     return () => {
-      active = false
+      mounted = false
       subscription.unsubscribe()
     }
   }, [])
@@ -162,6 +169,7 @@ export function AuthProvider({ children }) {
     setSession(null)
     setUser(null)
     setProfile(null)
+    setLoading(false)
   }
 
   const isAdmin = profile?.role === 'admin'
