@@ -3,12 +3,6 @@ import { supabase } from '../lib/supabaseClient'
 
 const AuthContext = createContext(null)
 
-function timeoutPromise(ms = 5000) {
-  return new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Timeout ao verificar admin')), ms)
-  )
-}
-
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [user, setUser] = useState(null)
@@ -22,16 +16,11 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const adminQuery = supabase
+      const { data, error } = await supabase
         .from('admin_users')
         .select('*')
         .eq('email', currentUser.email)
         .maybeSingle()
-
-      const { data, error } = await Promise.race([
-        adminQuery,
-        timeoutPromise(5000),
-      ])
 
       if (error) {
         console.error('Erro ao verificar admin:', error.message)
@@ -53,7 +42,7 @@ export function AuthProvider({ children }) {
         })
       }
     } catch (error) {
-      console.error('Falha/timeout na verificação de admin:', error)
+      console.error('Erro inesperado ao verificar admin:', error)
       setProfile({
         id: currentUser.id,
         email: currentUser.email,
@@ -62,44 +51,47 @@ export function AuthProvider({ children }) {
     }
   }
 
-  useEffect(() => {
-    let mounted = true
+  async function refreshAuthState() {
+    try {
+      const {
+        data: { session: currentSession },
+        error,
+      } = await supabase.auth.getSession()
 
-    async function init() {
-      try {
-        const {
-          data: { session: currentSession },
-          error,
-        } = await supabase.auth.getSession()
-
-        if (!mounted) return
-
-        if (error) {
-          console.error('Erro ao carregar sessão:', error.message)
-          setSession(null)
-          setUser(null)
-          setProfile(null)
-          setLoading(false)
-          return
-        }
-
-        setSession(currentSession)
-        setUser(currentSession?.user ?? null)
-
-        if (currentSession?.user) {
-          await loadAdminProfile(currentSession.user)
-        } else {
-          setProfile(null)
-        }
-      } catch (error) {
-        console.error('Erro no init do auth:', error)
-        if (!mounted) return
+      if (error) {
+        console.error('Erro ao carregar sessão:', error.message)
         setSession(null)
         setUser(null)
         setProfile(null)
-      } finally {
-        if (mounted) setLoading(false)
+        setLoading(false)
+        return
       }
+
+      setSession(currentSession)
+      setUser(currentSession?.user ?? null)
+
+      if (currentSession?.user) {
+        await loadAdminProfile(currentSession.user)
+      } else {
+        setProfile(null)
+      }
+    } catch (error) {
+      console.error('Erro no refreshAuthState:', error)
+      setSession(null)
+      setUser(null)
+      setProfile(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    let active = true
+
+    async function init() {
+      if (!active) return
+      setLoading(true)
+      await refreshAuthState()
     }
 
     init()
@@ -107,7 +99,7 @@ export function AuthProvider({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      if (!mounted) return
+      if (!active) return
 
       setSession(newSession)
       setUser(newSession?.user ?? null)
@@ -118,12 +110,23 @@ export function AuthProvider({ children }) {
         setProfile(null)
       }
 
-      if (mounted) setLoading(false)
+      setLoading(false)
     })
 
+    async function handleVisibilityOrFocus() {
+      if (document.visibilityState === 'visible') {
+        await refreshAuthState()
+      }
+    }
+
+    window.addEventListener('focus', handleVisibilityOrFocus)
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus)
+
     return () => {
-      mounted = false
+      active = false
       subscription.unsubscribe()
+      window.removeEventListener('focus', handleVisibilityOrFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus)
     }
   }, [])
 
@@ -147,22 +150,22 @@ export function AuthProvider({ children }) {
   }
 
   async function signInWithGoogle() {
-  return supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin,
-    },
-  })
-}
+    return supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    })
+  }
 
   async function signInWithApple() {
-  return supabase.auth.signInWithOAuth({
-    provider: 'apple',
-    options: {
-      redirectTo: window.location.origin,
-    },
-  })
-}
+    return supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    })
+  }
 
   async function signOut() {
     await supabase.auth.signOut()
