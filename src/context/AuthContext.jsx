@@ -147,22 +147,22 @@ export function AuthProvider({ children }) {
   }
 
   async function signInWithGoogle() {
-    return supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/#/`,
-      },
-    })
-  }
+  return supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin,
+    },
+  })
+}
 
   async function signInWithApple() {
-    return supabase.auth.signInWithOAuth({
-      provider: 'apple',
-      options: {
-        redirectTo: `${window.location.origin}/#/`,
-      },
-    })
-  }
+  return supabase.auth.signInWithOAuth({
+    provider: 'apple',
+    options: {
+      redirectTo: window.location.origin,
+    },
+  })
+}
 
   async function signOut() {
     await supabase.auth.signOut()
