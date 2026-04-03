@@ -122,7 +122,7 @@ export const products = [
     oldPrice: 64.9,
     badge: 'Infantil',
     image:
-      'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1519345182560-3f2917c472efb?auto=format&fit=crop&w=1200&q=80',
     description:
       'Camiseta infantil resistente, confortável e prática para o dia a dia dos pequenos.',
     sizes: ['2', '4', '6', '8', '10'],
@@ -171,7 +171,7 @@ export const testimonials = [
 ]
 
 export function formatPrice(value) {
-  return value.toLocaleString('pt-BR', {
+  return Number(value || 0).toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
   })
@@ -187,6 +187,24 @@ export function getCategoryName(categoryId) {
 
 export function getCategoryShortName(categoryId) {
   return getCategoryById(categoryId)?.short || categoryId
+}
+
+export function normalizeProductFromDatabase(product) {
+  return {
+    id: product.id,
+    name: product.title || '',
+    category: product.category || '',
+    price: Number(product.price || 0),
+    oldPrice: Number(product.compare_price || 0),
+    badge: product.badge || 'Produto',
+    image: product.image_url || 'https://placehold.co/1200x1200?text=Produto',
+    description: product.description || '',
+    sizes: Array.isArray(product.sizes) ? product.sizes : [],
+    featured: !!product.featured,
+    active: product.active ?? true,
+    stock: Number(product.stock || 0),
+    slug: product.slug || '',
+  }
 }
 
 export const storeConfig = {

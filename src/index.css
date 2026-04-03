@@ -1,1 +1,58 @@
 @import "tailwindcss";
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold cursor-pointer
+    transition-all duration-200 ease-out
+    shadow-sm;
+  }
+
+  .btn-primary:hover {
+    @apply -translate-y-0.5 shadow-lg;
+  }
+
+  .btn-primary:active {
+    transform: scale(0.97);
+  }
+
+  .btn-primary:focus-visible {
+    @apply outline-none ring-2 ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 font-medium cursor-pointer
+    transition-all duration-200 ease-out;
+  }
+
+  .btn-secondary:hover {
+    @apply -translate-y-0.5 shadow-md;
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.97);
+  }
+
+  .interactive-card {
+    @apply transition-all duration-200 ease-out cursor-pointer;
+  }
+
+  .interactive-card:hover {
+    @apply -translate-y-1 shadow-lg;
+  }
+
+  .interactive-card:active {
+    transform: scale(0.985);
+  }
+
+  .interactive-link {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .interactive-link:hover {
+    @apply opacity-80;
+  }
+
+  .interactive-link:active {
+    transform: scale(0.98);
+  }
+}

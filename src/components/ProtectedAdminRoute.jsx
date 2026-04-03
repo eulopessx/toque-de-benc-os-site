@@ -6,9 +6,19 @@ export default function ProtectedAdminRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-12 text-[#24384d]">
-        Carregando...
-      </div>
+      <main className="mx-auto max-w-7xl px-4 py-12 lg:px-8 lg:py-16">
+        <div className="rounded-[2rem] border border-[#ddd0c1] bg-white/80 p-8 text-center shadow-[0_14px_40px_rgba(36,56,77,0.05)]">
+          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a835f]">
+            Painel administrativo
+          </div>
+          <h1 className="mt-4 text-2xl font-semibold text-[#24384d] sm:text-3xl">
+            Carregando acesso...
+          </h1>
+          <p className="mt-3 text-sm leading-7 text-[#5d6d7d]">
+            Estamos verificando suas permissões de administrador.
+          </p>
+        </div>
+      </main>
     )
   }
 

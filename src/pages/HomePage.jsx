@@ -5,7 +5,7 @@ import { categories, products, testimonials } from '../data/storeData'
 
 function Metric({ label, text }) {
   return (
-    <div>
+    <div className="rounded-[1.5rem] border border-[#eadfce] bg-[#fcfaf7] p-5 transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[#d8cab8] hover:shadow-[0_16px_32px_rgba(36,56,77,0.07)]">
       <div className="text-xl font-semibold text-[#24384d] sm:text-2xl">
         {label}
       </div>
@@ -16,7 +16,7 @@ function Metric({ label, text }) {
 
 function BrandChip({ text }) {
   return (
-    <div className="rounded-[1.5rem] border border-white/15 bg-white/10 px-5 py-4 text-sm font-semibold backdrop-blur-sm">
+    <div className="rounded-[1.5rem] border border-white/15 bg-white/10 px-5 py-4 text-sm font-semibold backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/15 hover:shadow-[0_12px_28px_rgba(0,0,0,0.10)]">
       {text}
     </div>
   )
@@ -24,7 +24,7 @@ function BrandChip({ text }) {
 
 function FeaturePill({ text }) {
   return (
-    <div className="rounded-full border border-[#ddd0c1] bg-white px-5 py-3 text-sm font-semibold text-[#24384d]">
+    <div className="rounded-full border border-[#ddd0c1] bg-white px-5 py-3 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cdbda8] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)]">
       {text}
     </div>
   )
@@ -73,12 +73,12 @@ export default function HomePage() {
     <main>
       <section className="relative overflow-hidden">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:py-14">
-          <div className="relative overflow-hidden rounded-[2rem] border border-[#ddd0c1] bg-white/80 p-6 shadow-[0_20px_60px_rgba(36,56,77,0.08)] sm:p-10 lg:p-12">
-            <div className="mb-8 flex items-center gap-4 rounded-[1.5rem] border border-[#e7dccf] bg-[#fbf8f4] p-4 shadow-sm sm:max-w-max sm:gap-5 sm:p-5">
+          <div className="relative overflow-hidden rounded-[2rem] border border-[#ddd0c1] bg-white/80 p-6 shadow-[0_20px_60px_rgba(36,56,77,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(36,56,77,0.12)] sm:p-10 lg:p-12">
+            <div className="mb-8 flex items-center gap-4 rounded-[1.5rem] border border-[#e7dccf] bg-[#fbf8f4] p-4 shadow-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(36,56,77,0.06)] sm:max-w-max sm:gap-5 sm:p-5">
               <img
                 src="/logo-toque-de-bencaos.png"
                 alt="Logo Toque de Bençãos"
-                className="h-24 w-24 rounded-full border-2 border-[#d8cbb9] bg-[#efe3d4] object-cover shadow-sm sm:h-28 sm:w-28"
+                className="h-24 w-24 rounded-full border-2 border-[#d8cbb9] bg-[#efe3d4] object-cover shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_14px_28px_rgba(36,56,77,0.12)] sm:h-28 sm:w-28"
               />
               <div>
                 <div className="font-serif text-4xl italic leading-none text-[#3b648c] sm:text-5xl">
@@ -90,31 +90,31 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="inline-flex rounded-full bg-[#d9cdbd] px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#24384d] sm:text-xs">
+            <div className="inline-flex rounded-full bg-[#d9cdbd] px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#24384d] shadow-[0_8px_18px_rgba(36,56,77,0.05)] transition-all duration-300 hover:-translate-y-0.5 sm:text-xs">
               Moda cristã casual para toda a família
             </div>
 
             <h1 className="mt-6 max-w-3xl font-serif text-4xl leading-[0.95] text-[#24384d] sm:text-5xl lg:text-7xl">
-  Moda com delicadeza, identidade e uma apresentação à altura da sua marca.
-</h1>
+              Moda com delicadeza, identidade e uma apresentação à altura da sua marca.
+            </h1>
 
-<p className="mt-6 max-w-2xl text-sm leading-7 text-[#526374] sm:text-base lg:text-lg">
-  A Toque de Bençãos foi pensada para oferecer uma experiência visual
-  mais sofisticada, acolhedora e profissional, destacando baby looks,
-  camisetas e peças infantis com muito mais beleza, clareza e presença.
-</p>
+            <p className="mt-6 max-w-2xl text-sm leading-7 text-[#526374] sm:text-base lg:text-lg">
+              A Toque de Bençãos foi pensada para oferecer uma experiência visual
+              mais sofisticada, acolhedora e profissional, destacando baby looks,
+              camisetas e peças infantis com muito mais beleza, clareza e presença.
+            </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 to="/catalogo"
-                className="rounded-full bg-[#24384d] px-7 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-[#24384d]/15 transition hover:-translate-y-0.5"
+                className="rounded-full bg-[#24384d] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_14px_30px_rgba(36,56,77,0.20)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#1d3042] hover:shadow-[0_20px_36px_rgba(36,56,77,0.28)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
               >
                 Ver catálogo
               </Link>
 
               <Link
                 to="/contato"
-                className="rounded-full border border-[#b8a894] px-7 py-3 text-center text-sm font-semibold text-[#24384d] transition hover:bg-[#efe3d4]"
+                className="rounded-full border border-[#b8a894] bg-white/70 px-7 py-3 text-center text-sm font-semibold text-[#24384d] shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#aa977f] hover:bg-[#efe3d4] hover:shadow-[0_14px_28px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
               >
                 Falar com a loja
               </Link>
@@ -136,16 +136,16 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="relative min-h-[420px] overflow-hidden rounded-[2rem] border border-[#ddd0c1] bg-gradient-to-b from-[#efe3d4] to-[#e7dfd6] shadow-[0_20px_60px_rgba(36,56,77,0.08)] lg:min-h-[100%]">
+          <div className="group relative min-h-[420px] overflow-hidden rounded-[2rem] border border-[#ddd0c1] bg-gradient-to-b from-[#efe3d4] to-[#e7dfd6] shadow-[0_20px_60px_rgba(36,56,77,0.08)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(36,56,77,0.12)] lg:min-h-[100%]">
             <img
               src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1400&q=80"
               alt="Coleção moderna e elegante"
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#24384d]/60 via-[#24384d]/10 to-transparent" />
 
             <div className="relative z-10 flex h-full flex-col justify-end p-6 text-white sm:p-8 lg:p-10">
-              <div className="mb-4 inline-flex w-max rounded-full border border-white/40 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] backdrop-blur-sm">
+              <div className="mb-4 inline-flex w-max rounded-full border border-white/40 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-0.5">
                 Destaque visual
               </div>
 
@@ -169,21 +169,21 @@ export default function HomePage() {
           {categories.map((category) => (
             <article
               key={category.id}
-              className="group overflow-hidden rounded-[1.8rem] border border-[#ddd0c1] bg-white shadow-[0_12px_40px_rgba(36,56,77,0.05)] transition hover:-translate-y-1"
+              className="group overflow-hidden rounded-[1.8rem] border border-[#ddd0c1] bg-white shadow-[0_12px_40px_rgba(36,56,77,0.05)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-[#d6c6b3] hover:shadow-[0_22px_52px_rgba(36,56,77,0.09)]"
             >
               <div className="h-72 overflow-hidden">
                 <img
                   src={category.image}
                   alt={category.name}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.045]"
                 />
               </div>
 
               <div className="p-6">
-                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a835f]">
+                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a835f] transition-colors duration-300 group-hover:text-[#876f49]">
                   {category.short}
                 </div>
-                <h3 className="mt-3 text-2xl font-semibold text-[#24384d]">
+                <h3 className="mt-3 text-2xl font-semibold text-[#24384d] transition-all duration-300 group-hover:translate-x-0.5">
                   {category.name}
                 </h3>
                 <p className="mt-3 text-sm leading-6 text-[#6d7a88]">
@@ -191,7 +191,7 @@ export default function HomePage() {
                 </p>
                 <Link
                   to="/catalogo"
-                  className="mt-5 inline-block text-sm font-semibold text-[#3b648c] transition hover:text-[#24384d]"
+                  className="mt-5 inline-block text-sm font-semibold text-[#3b648c] transition-all duration-200 hover:translate-x-1 hover:text-[#24384d]"
                 >
                   Ver produtos →
                 </Link>
@@ -219,7 +219,7 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-12 lg:px-8 lg:py-16">
-        <div className="grid gap-6 rounded-[2rem] border border-[#ddd0c1] bg-gradient-to-r from-[#24384d] to-[#31506d] p-8 text-white shadow-[0_20px_60px_rgba(36,56,77,0.16)] lg:grid-cols-[1fr_1fr] lg:p-12">
+        <div className="grid gap-6 rounded-[2rem] border border-[#ddd0c1] bg-gradient-to-r from-[#24384d] to-[#31506d] p-8 text-white shadow-[0_20px_60px_rgba(36,56,77,0.16)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(36,56,77,0.22)] lg:grid-cols-[1fr_1fr] lg:p-12">
           <div>
             <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d9cdbd]">
               Novo posicionamento da marca
@@ -252,9 +252,9 @@ export default function HomePage() {
             {benefits.map((benefit) => (
               <div
                 key={benefit.title}
-                className="rounded-[1.75rem] border border-[#dbcbb8] bg-white p-8 text-center shadow-[0_12px_30px_rgba(36,56,77,0.04)]"
+                className="rounded-[1.75rem] border border-[#dbcbb8] bg-white p-8 text-center shadow-[0_12px_30px_rgba(36,56,77,0.04)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-[#d2c0aa] hover:shadow-[0_20px_42px_rgba(36,56,77,0.08)]"
               >
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#f4ece2] text-2xl text-[#c99d4d]">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#f4ece2] text-2xl text-[#c99d4d] shadow-[0_8px_18px_rgba(201,157,77,0.10)] transition-all duration-300 hover:scale-[1.03]">
                   ✦
                 </div>
                 <h3 className="mt-5 text-xl font-semibold text-[#24384d]">
@@ -270,11 +270,11 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-8 px-4 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:px-8 lg:py-20">
-        <div className="overflow-hidden rounded-[2rem] border border-[#ddd0c1] bg-white shadow-[0_14px_40px_rgba(36,56,77,0.05)]">
+        <div className="group overflow-hidden rounded-[2rem] border border-[#ddd0c1] bg-white shadow-[0_14px_40px_rgba(36,56,77,0.05)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(36,56,77,0.10)]">
           <img
             src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1400&q=80"
             alt="Moda feminina e familiar"
-            className="h-full min-h-[340px] w-full object-cover"
+            className="h-full min-h-[340px] w-full object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
           />
         </div>
 
@@ -313,7 +313,7 @@ export default function HomePage() {
           {testimonials.map((testimonial) => (
             <div
               key={testimonial.name}
-              className="rounded-[1.75rem] border border-[#ddd0c1] bg-white p-8 shadow-[0_12px_35px_rgba(36,56,77,0.05)]"
+              className="rounded-[1.75rem] border border-[#ddd0c1] bg-white p-8 shadow-[0_12px_35px_rgba(36,56,77,0.05)] transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[#d8cab8] hover:shadow-[0_22px_44px_rgba(36,56,77,0.09)]"
             >
               <div className="text-[#c99d4d]">★★★★★</div>
               <p className="mt-5 leading-7 text-[#516273]">
@@ -339,7 +339,7 @@ export default function HomePage() {
             {faqs.map((item) => (
               <div
                 key={item.question}
-                className="rounded-[1.5rem] border border-[#ddd0c1] bg-white p-6 shadow-[0_10px_30px_rgba(36,56,77,0.04)]"
+                className="rounded-[1.5rem] border border-[#ddd0c1] bg-white p-6 shadow-[0_10px_30px_rgba(36,56,77,0.04)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d8cab8] hover:shadow-[0_18px_36px_rgba(36,56,77,0.07)]"
               >
                 <h3 className="text-lg font-semibold text-[#24384d]">
                   {item.question}
@@ -354,7 +354,7 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-14 lg:px-8 lg:py-20">
-        <div className="grid gap-8 overflow-hidden rounded-[2rem] border border-[#ddd0c1] bg-gradient-to-r from-[#24384d] to-[#31506d] p-8 text-white shadow-[0_20px_60px_rgba(36,56,77,0.15)] lg:grid-cols-[1.1fr_0.9fr] lg:p-12">
+        <div className="grid gap-8 overflow-hidden rounded-[2rem] border border-[#ddd0c1] bg-gradient-to-r from-[#24384d] to-[#31506d] p-8 text-white shadow-[0_20px_60px_rgba(36,56,77,0.15)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_28px_78px_rgba(36,56,77,0.22)] lg:grid-cols-[1.1fr_0.9fr] lg:p-12">
           <div>
             <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d9cdbd]">
               Relacionamento com clientes
@@ -369,16 +369,16 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="flex flex-col justify-center rounded-[1.5rem] bg-white/10 p-6 backdrop-blur-sm">
+          <div className="flex flex-col justify-center rounded-[1.5rem] bg-white/10 p-6 backdrop-blur-sm transition-all duration-300 ease-out hover:bg-white/12">
             <label className="mb-3 text-sm font-medium text-white/80">
               Seu melhor e-mail
             </label>
             <input
               type="email"
               placeholder="Digite seu e-mail"
-              className="rounded-2xl border border-white/20 bg-white px-4 py-4 text-[#24384d] outline-none placeholder:text-[#94a3b8]"
+              className="rounded-2xl border border-white/20 bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#94a3b8] hover:border-white/40 focus:border-white/60 focus:shadow-[0_0_0_4px_rgba(255,255,255,0.12)]"
             />
-            <button className="mt-4 rounded-2xl bg-[#c99d4d] px-5 py-4 text-sm font-semibold text-white transition hover:opacity-90">
+            <button className="mt-4 rounded-2xl bg-[#c99d4d] px-5 py-4 text-sm font-semibold text-white shadow-[0_12px_26px_rgba(201,157,77,0.25)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#bc9043] hover:shadow-[0_18px_34px_rgba(201,157,77,0.34)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.98]">
               Quero receber novidades
             </button>
           </div>

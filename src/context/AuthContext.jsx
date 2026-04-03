@@ -13,19 +13,34 @@ export function AuthProvider({ children }) {
     let mounted = true
 
     async function loadSession() {
-      const { data } = await supabase.auth.getSession()
-      const currentSession = data.session
+      setLoading(true)
+
+      const { data, error } = await supabase.auth.getSession()
 
       if (!mounted) return
 
+      if (error) {
+        console.error('Erro ao carregar sessão:', error.message)
+        setSession(null)
+        setUser(null)
+        setProfile(null)
+        setLoading(false)
+        return
+      }
+
+      const currentSession = data.session
       setSession(currentSession)
       setUser(currentSession?.user ?? null)
 
       if (currentSession?.user) {
-        await loadProfile(currentSession.user.id)
+        await loadAdminProfile(currentSession.user)
+      } else {
+        setProfile(null)
       }
 
-      setLoading(false)
+      if (mounted) {
+        setLoading(false)
+      }
     }
 
     loadSession()
@@ -33,16 +48,21 @@ export function AuthProvider({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      if (!mounted) return
+
+      setLoading(true)
       setSession(newSession)
       setUser(newSession?.user ?? null)
 
       if (newSession?.user) {
-        await loadProfile(newSession.user.id)
+        await loadAdminProfile(newSession.user)
       } else {
         setProfile(null)
       }
 
-      setLoading(false)
+      if (mounted) {
+        setLoading(false)
+      }
     })
 
     return () => {
@@ -51,15 +71,29 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  async function loadProfile(userId) {
+  async function loadAdminProfile(currentUser) {
     const { data, error } = await supabase
-      .from('profiles')
+      .from('admin_users')
       .select('*')
-      .eq('id', userId)
-      .single()
+      .eq('id', currentUser.id)
+      .maybeSingle()
 
     if (error) {
-      setProfile(null)
+      console.error('Erro ao verificar admin:', error.message)
+      setProfile({
+        id: currentUser.id,
+        email: currentUser.email,
+        role: 'customer',
+      })
+      return
+    }
+
+    if (!data) {
+      setProfile({
+        id: currentUser.id,
+        email: currentUser.email,
+        role: 'customer',
+      })
       return
     }
 
@@ -121,7 +155,7 @@ export function AuthProvider({ children }) {
       signInWithGoogle,
       signInWithApple,
       signOut,
-      refreshProfile: () => user?.id ? loadProfile(user.id) : null,
+      refreshProfile: () => (user ? loadAdminProfile(user) : null),
     }),
     [session, user, profile, loading, isAdmin]
   )
