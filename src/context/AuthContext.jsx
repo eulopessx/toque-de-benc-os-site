@@ -9,47 +9,47 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
-async function loadAdminProfile(currentUser) {
-  if (!currentUser) {
-    setProfile(null)
-    return
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('admin_users')
-      .select('*')
-      .eq('email', currentUser.email)
-      .maybeSingle()
-
-    if (error) {
-      console.error('Erro ao verificar admin:', error.message)
-      setProfile({
-        id: currentUser.id,
-        email: currentUser.email,
-        role: 'customer',
-      })
+  async function loadAdminProfile(currentUser) {
+    if (!currentUser) {
+      setProfile(null)
       return
     }
 
-    if (data) {
-      setProfile(data)
-    } else {
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('email', currentUser.email)
+        .maybeSingle()
+
+      if (error) {
+        console.error('Erro ao verificar admin:', error.message)
+        setProfile({
+          id: currentUser.id,
+          email: currentUser.email,
+          role: 'customer',
+        })
+        return
+      }
+
+      if (data) {
+        setProfile(data)
+      } else {
+        setProfile({
+          id: currentUser.id,
+          email: currentUser.email,
+          role: 'customer',
+        })
+      }
+    } catch (error) {
+      console.error('Erro inesperado ao verificar admin:', error)
       setProfile({
         id: currentUser.id,
         email: currentUser.email,
         role: 'customer',
       })
     }
-  } catch (error) {
-    console.error('Erro inesperado ao verificar admin:', error)
-    setProfile({
-      id: currentUser.id,
-      email: currentUser.email,
-      role: 'customer',
-    })
   }
-}
 
   useEffect(() => {
     let active = true
