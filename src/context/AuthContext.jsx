@@ -3,6 +3,14 @@ import { supabase } from '../lib/supabaseClient'
 
 const AuthContext = createContext(null)
 
+function createCustomerProfile(currentUser) {
+  return {
+    id: currentUser.id,
+    email: currentUser.email,
+    role: 'customer',
+  }
+}
+
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [user, setUser] = useState(null)
@@ -12,7 +20,7 @@ export function AuthProvider({ children }) {
   async function loadAdminProfile(currentUser) {
     if (!currentUser) {
       setProfile(null)
-      return
+      return null
     }
 
     try {
@@ -24,34 +32,41 @@ export function AuthProvider({ children }) {
 
       if (error) {
         console.error('Erro ao verificar admin:', error.message)
-        setProfile({
-          id: currentUser.id,
-          email: currentUser.email,
-          role: 'customer',
-        })
-        return
+        const fallbackProfile = createCustomerProfile(currentUser)
+        setProfile(fallbackProfile)
+        return fallbackProfile
       }
 
       if (data) {
         setProfile(data)
-      } else {
-        setProfile({
-          id: currentUser.id,
-          email: currentUser.email,
-          role: 'customer',
-        })
+        return data
       }
+
+      const fallbackProfile = createCustomerProfile(currentUser)
+      setProfile(fallbackProfile)
+      return fallbackProfile
     } catch (error) {
       console.error('Erro inesperado ao verificar admin:', error)
-      setProfile({
-        id: currentUser.id,
-        email: currentUser.email,
-        role: 'customer',
-      })
+      const fallbackProfile = createCustomerProfile(currentUser)
+      setProfile(fallbackProfile)
+      return fallbackProfile
+    }
+  }
+
+  async function applySession(newSession) {
+    setSession(newSession)
+    setUser(newSession?.user ?? null)
+
+    if (newSession?.user) {
+      await loadAdminProfile(newSession.user)
+    } else {
+      setProfile(null)
     }
   }
 
   async function refreshAuthState() {
+    setLoading(true)
+
     try {
       const {
         data: { session: currentSession },
@@ -63,18 +78,10 @@ export function AuthProvider({ children }) {
         setSession(null)
         setUser(null)
         setProfile(null)
-        setLoading(false)
         return
       }
 
-      setSession(currentSession)
-      setUser(currentSession?.user ?? null)
-
-      if (currentSession?.user) {
-        await loadAdminProfile(currentSession.user)
-      } else {
-        setProfile(null)
-      }
+      await applySession(currentSession)
     } catch (error) {
       console.error('Erro no refreshAuthState:', error)
       setSession(null)
@@ -86,11 +93,10 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    let active = true
+    let mounted = true
 
     async function init() {
-      if (!active) return
-      setLoading(true)
+      if (!mounted) return
       await refreshAuthState()
     }
 
@@ -98,40 +104,43 @@ export function AuthProvider({ children }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      if (!active) return
+    } = supabase.auth.onAuthStateChange((_, newSession) => {
+      if (!mounted) return
 
-      setSession(newSession)
-      setUser(newSession?.user ?? null)
-
-      if (newSession?.user) {
-        await loadAdminProfile(newSession.user)
-      } else {
-        setProfile(null)
-      }
-
-      setLoading(false)
+      Promise.resolve()
+        .then(async () => {
+          setLoading(true)
+          await applySession(newSession)
+        })
+        .catch((error) => {
+          console.error('Erro no onAuthStateChange:', error)
+          setSession(null)
+          setUser(null)
+          setProfile(null)
+        })
+        .finally(() => {
+          if (mounted) {
+            setLoading(false)
+          }
+        })
     })
 
     async function handleFocusOrVisibility() {
+      if (!mounted) return
+
       if (document.visibilityState === 'visible') {
         await refreshAuthState()
       }
     }
 
-    const interval = setInterval(() => {
-      refreshAuthState()
-    }, 60000)
-
     window.addEventListener('focus', handleFocusOrVisibility)
     document.addEventListener('visibilitychange', handleFocusOrVisibility)
 
     return () => {
-      active = false
+      mounted = false
       subscription.unsubscribe()
       window.removeEventListener('focus', handleFocusOrVisibility)
       document.removeEventListener('visibilitychange', handleFocusOrVisibility)
-      clearInterval(interval)
     }
   }, [])
 
