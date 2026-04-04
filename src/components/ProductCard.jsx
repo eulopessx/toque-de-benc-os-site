@@ -17,9 +17,11 @@ export default function ProductCard({ product }) {
 
           <div className="absolute inset-0 bg-gradient-to-t from-[#24384d]/10 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
-          <div className="absolute left-4 top-4 rounded-full bg-[#24384d] px-3 py-1 text-xs font-semibold text-white shadow-[0_10px_20px_rgba(36,56,77,0.18)] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:bg-[#1f3347]">
-            {product.badge}
-          </div>
+          {product.badge ? (
+            <div className="absolute left-4 top-4 rounded-full bg-[#24384d] px-3 py-1 text-xs font-semibold text-white shadow-[0_10px_20px_rgba(36,56,77,0.18)] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:bg-[#1f3347]">
+              {product.badge}
+            </div>
+          ) : null}
         </div>
       </Link>
 
@@ -38,16 +40,19 @@ export default function ProductCard({ product }) {
           <span className="text-lg font-bold text-[#24384d]">
             {formatPrice(product.price)}
           </span>
-          <span className="text-sm text-[#8f96a0] line-through">
-            {formatPrice(product.oldPrice)}
-          </span>
+
+          {product.oldPrice > 0 ? (
+            <span className="text-sm text-[#8f96a0] line-through">
+              {formatPrice(product.oldPrice)}
+            </span>
+          ) : null}
         </div>
 
         <div className="mt-2 text-sm text-[#6d7a88]">
           ou em até 6x sem complicação
         </div>
 
-        {product.sizes ? (
+        {product.sizes?.length ? (
           <div className="mt-4 flex flex-wrap gap-2">
             {product.sizes.map((size) => (
               <span

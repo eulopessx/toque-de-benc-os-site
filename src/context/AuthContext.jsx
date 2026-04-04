@@ -113,20 +113,25 @@ export function AuthProvider({ children }) {
       setLoading(false)
     })
 
-    async function handleVisibilityOrFocus() {
+    async function handleFocusOrVisibility() {
       if (document.visibilityState === 'visible') {
         await refreshAuthState()
       }
     }
 
-    window.addEventListener('focus', handleVisibilityOrFocus)
-    document.addEventListener('visibilitychange', handleVisibilityOrFocus)
+    const interval = setInterval(() => {
+      refreshAuthState()
+    }, 60000)
+
+    window.addEventListener('focus', handleFocusOrVisibility)
+    document.addEventListener('visibilitychange', handleFocusOrVisibility)
 
     return () => {
       active = false
       subscription.unsubscribe()
-      window.removeEventListener('focus', handleVisibilityOrFocus)
-      document.removeEventListener('visibilitychange', handleVisibilityOrFocus)
+      window.removeEventListener('focus', handleFocusOrVisibility)
+      document.removeEventListener('visibilitychange', handleFocusOrVisibility)
+      clearInterval(interval)
     }
   }, [])
 
@@ -190,6 +195,7 @@ export function AuthProvider({ children }) {
       signInWithApple,
       signOut,
       refreshProfile: () => (user ? loadAdminProfile(user) : null),
+      refreshAuthState,
     }),
     [session, user, profile, loading, isAdmin]
   )

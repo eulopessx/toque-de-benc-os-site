@@ -1,7 +1,13 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import SectionHeader from '../components/SectionHeader'
-import { categories, products, testimonials } from '../data/storeData'
+import { supabase } from '../lib/supabaseClient'
+import {
+  categories,
+  testimonials,
+  normalizeProductFromDatabase,
+} from '../data/storeData'
 
 function Metric({ label, text }) {
   return (
@@ -69,6 +75,35 @@ const faqs = [
 ]
 
 export default function HomePage() {
+  const [featuredProducts, setFeaturedProducts] = useState([])
+  const [loadingProducts, setLoadingProducts] = useState(true)
+
+  useEffect(() => {
+    loadFeaturedProducts()
+  }, [])
+
+  async function loadFeaturedProducts() {
+    setLoadingProducts(true)
+
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('active', true)
+      .order('featured', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(4)
+
+    if (error) {
+      console.error('Erro ao carregar produtos da home:', error.message)
+      setFeaturedProducts([])
+      setLoadingProducts(false)
+      return
+    }
+
+    setFeaturedProducts((data || []).map(normalizeProductFromDatabase))
+    setLoadingProducts(false)
+  }
+
   return (
     <main>
       <section className="relative overflow-hidden">
@@ -207,14 +242,31 @@ export default function HomePage() {
             centered
             eyebrow="Produtos em destaque"
             title="Mais vendidos da Toque de Bençãos"
-            text="Uma vitrine pensada para valorizar o produto, facilitar a leitura do preço e tornar a compra mais convidativa em qualquer tela."
+            text="Agora a vitrine principal já pode exibir os produtos reais cadastrados no painel admin."
           />
 
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            {products.slice(0, 4).map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {loadingProducts ? (
+            <div className="mt-10 rounded-[2rem] border border-[#ddd0c1] bg-white p-10 text-center shadow-[0_14px_40px_rgba(36,56,77,0.05)]">
+              <h3 className="text-2xl font-semibold text-[#24384d]">
+                Carregando produtos...
+              </h3>
+            </div>
+          ) : featuredProducts.length > 0 ? (
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <div className="mt-10 rounded-[2rem] border border-[#ddd0c1] bg-white p-10 text-center shadow-[0_14px_40px_rgba(36,56,77,0.05)]">
+              <h3 className="text-2xl font-semibold text-[#24384d]">
+                Nenhum produto em destaque ainda
+              </h3>
+              <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#5d6d7d] sm:text-base">
+                Cadastre produtos no painel admin para que eles apareçam aqui.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 

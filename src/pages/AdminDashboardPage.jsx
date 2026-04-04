@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { formatPrice } from '../data/storeData'
 
+const ADMIN_PRODUCT_DRAFT_KEY = 'toque-admin-product-draft'
+const STORAGE_BUCKET = 'product-images'
+
 const emptyForm = {
   title: '',
   category: '',
@@ -33,9 +36,7 @@ function StatusBadge({ children, variant = 'default' }) {
   }
 
   return (
-    <span
-      className={`rounded-full px-3 py-1 text-xs font-semibold ${styles[variant]}`}
-    >
+    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${styles[variant]}`}>
       {children}
     </span>
   )
@@ -43,16 +44,29 @@ function StatusBadge({ children, variant = 'default' }) {
 
 export default function AdminDashboardPage() {
   const [products, setProducts] = useState([])
-  const [form, setForm] = useState(emptyForm)
+  const [form, setForm] = useState(() => {
+    try {
+      const savedDraft = localStorage.getItem(ADMIN_PRODUCT_DRAFT_KEY)
+      return savedDraft ? JSON.parse(savedDraft) : emptyForm
+    } catch {
+      return emptyForm
+    }
+  })
   const [editingId, setEditingId] = useState(null)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
+  const [selectedImageFile, setSelectedImageFile] = useState(null)
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   useEffect(() => {
     loadProducts()
   }, [])
+
+  useEffect(() => {
+    localStorage.setItem(ADMIN_PRODUCT_DRAFT_KEY, JSON.stringify(form))
+  }, [form])
 
   async function loadProducts() {
     setLoading(true)
@@ -82,6 +96,41 @@ export default function AdminDashboardPage() {
     }))
   }
 
+  function handleFileChange(e) {
+    const file = e.target.files?.[0] || null
+    setSelectedImageFile(file)
+  }
+
+  async function uploadImageAndGetUrl(file) {
+    if (!file) return form.image_url.trim()
+
+    setUploadingImage(true)
+
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
+    const filePath = `products/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type,
+      })
+
+    if (uploadError) {
+      setUploadingImage(false)
+      throw uploadError
+    }
+
+    const { data } = supabase.storage
+      .from(STORAGE_BUCKET)
+      .getPublicUrl(filePath)
+
+    setUploadingImage(false)
+    return data.publicUrl
+  }
+
   const filteredProducts = useMemo(() => {
     const term = search.trim().toLowerCase()
 
@@ -101,79 +150,92 @@ export default function AdminDashboardPage() {
     setSaving(true)
     setMessage('')
 
-    const cleanTitle = form.title.trim()
+    try {
+      const cleanTitle = form.title.trim()
+      const finalImageUrl = await uploadImageAndGetUrl(selectedImageFile)
 
-    const payload = {
-      title: cleanTitle,
-      slug: cleanTitle
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-'),
-      category: form.category.trim(),
-      price: Number(form.price) || 0,
-      compare_price: form.compare_price ? Number(form.compare_price) : null,
-      image_url: form.image_url.trim(),
-      description: form.description.trim(),
-      stock: Number(form.stock) || 0,
-      featured: form.featured,
-      active: form.active,
-      badge: form.badge.trim() || null,
-      sizes: form.sizes
-        .split(',')
-        .map((item) => item.trim())
-        .filter(Boolean),
-    }
+      const payload = {
+        title: cleanTitle,
+        slug: cleanTitle
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-'),
+        name: cleanTitle,
+        category: form.category.trim(),
+        price: Number(form.price) || 0,
+        compare_price: form.compare_price ? Number(form.compare_price) : null,
+        old_price: form.compare_price ? Number(form.compare_price) : null,
+        image_url: finalImageUrl,
+        image: finalImageUrl,
+        description: form.description.trim(),
+        stock: Number(form.stock) || 0,
+        featured: form.featured,
+        active: form.active,
+        badge: form.badge.trim() || null,
+        sizes: form.sizes
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean),
+      }
 
-    if (!payload.title || !payload.category || !payload.image_url || !payload.description) {
-      setMessage('Preencha nome, categoria, descrição e URL da imagem.')
+      if (!payload.title || !payload.category || !payload.image_url || !payload.description) {
+        setMessage('Preencha nome, categoria, descrição e imagem do produto.')
+        setSaving(false)
+        return
+      }
+
+      if (editingId) {
+        const { error } = await supabase
+          .from('products')
+          .update(payload)
+          .eq('id', editingId)
+
+        if (error) {
+          setMessage(error.message)
+          setSaving(false)
+          return
+        }
+
+        setMessage('Produto atualizado com sucesso.')
+      } else {
+        const { error } = await supabase
+          .from('products')
+          .insert(payload)
+
+        if (error) {
+          setMessage(error.message)
+          setSaving(false)
+          return
+        }
+
+        setMessage('Produto criado com sucesso.')
+      }
+
+      setForm(emptyForm)
+      setEditingId(null)
+      setSelectedImageFile(null)
+      localStorage.removeItem(ADMIN_PRODUCT_DRAFT_KEY)
       setSaving(false)
-      return
+      loadProducts()
+    } catch (error) {
+      setMessage(error.message || 'Não foi possível salvar o produto.')
+      setSaving(false)
+      setUploadingImage(false)
     }
-
-    if (editingId) {
-      const { error } = await supabase
-        .from('products')
-        .update(payload)
-        .eq('id', editingId)
-
-      if (error) {
-        setMessage(error.message)
-        setSaving(false)
-        return
-      }
-
-      setMessage('Produto atualizado com sucesso.')
-    } else {
-      const { error } = await supabase
-        .from('products')
-        .insert(payload)
-
-      if (error) {
-        setMessage(error.message)
-        setSaving(false)
-        return
-      }
-
-      setMessage('Produto criado com sucesso.')
-    }
-
-    setForm(emptyForm)
-    setEditingId(null)
-    setSaving(false)
-    loadProducts()
   }
 
   function startEdit(product) {
     setEditingId(product.id)
+    setSelectedImageFile(null)
     setForm({
-      title: product.title || '',
+      title: product.title || product.name || '',
       category: product.category || '',
       price: product.price || '',
-      compare_price: product.compare_price || '',
+      compare_price: product.compare_price || product.old_price || '',
       badge: product.badge || '',
-      image_url: product.image_url || '',
+      image_url: product.image_url || product.image || '',
       description: product.description || '',
       sizes: Array.isArray(product.sizes) ? product.sizes.join(', ') : '',
       stock: product.stock || '',
@@ -188,7 +250,6 @@ export default function AdminDashboardPage() {
     setMessage('')
 
     const confirmed = window.confirm('Tem certeza que deseja remover este produto?')
-
     if (!confirmed) return
 
     const { error } = await supabase
@@ -208,7 +269,9 @@ export default function AdminDashboardPage() {
   function handleCancelEdit() {
     setEditingId(null)
     setForm(emptyForm)
+    setSelectedImageFile(null)
     setMessage('')
+    localStorage.removeItem(ADMIN_PRODUCT_DRAFT_KEY)
   }
 
   return (
@@ -233,7 +296,7 @@ export default function AdminDashboardPage() {
                 {editingId ? 'Editar produto' : 'Novo produto'}
               </h2>
               <p className="mt-2 text-sm text-[#5d6d7d]">
-                Preencha os dados abaixo para salvar um produto no Supabase.
+                Agora você pode enviar imagem direto pelo painel.
               </p>
             </div>
 
@@ -312,7 +375,22 @@ export default function AdminDashboardPage() {
             </div>
 
             <div>
-              <FieldLabel>URL da imagem</FieldLabel>
+              <FieldLabel>Enviar imagem do produto</FieldLabel>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-sm text-[#24384d] outline-none"
+              />
+              {selectedImageFile ? (
+                <p className="mt-2 text-sm text-[#5d6d7d]">
+                  Arquivo selecionado: {selectedImageFile.name}
+                </p>
+              ) : null}
+            </div>
+
+            <div>
+              <FieldLabel>Ou use uma URL manual</FieldLabel>
               <input
                 name="image_url"
                 value={form.image_url}
@@ -382,10 +460,12 @@ export default function AdminDashboardPage() {
             <div className="flex flex-col gap-3 sm:flex-row">
               <button
                 type="submit"
-                disabled={saving}
-                className="flex-1 rounded-2xl bg-[#24384d] px-5 py-4 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(36,56,77,0.14)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#1d3042] hover:shadow-[0_18px_34px_rgba(36,56,77,0.24)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={saving || uploadingImage}
+                className="flex-1 rounded-2xl bg-[#24384d] px-5 py-4 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(36,56,77,0.14)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#1d3042] hover:shadow-[0_18px_34px_rgba(36,56,77,0.24)] disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {saving
+                {uploadingImage
+                  ? 'Enviando imagem...'
+                  : saving
                   ? 'Salvando...'
                   : editingId
                   ? 'Salvar alterações'
@@ -446,14 +526,14 @@ export default function AdminDashboardPage() {
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex gap-4">
                       <img
-                        src={product.image_url || 'https://placehold.co/240x240?text=Produto'}
-                        alt={product.title}
+                        src={product.image_url || product.image || 'https://placehold.co/240x240?text=Produto'}
+                        alt={product.title || product.name}
                         className="h-24 w-24 rounded-[1rem] object-cover"
                       />
 
                       <div className="min-w-0">
                         <h3 className="text-lg font-semibold text-[#24384d]">
-                          {product.title}
+                          {product.title || product.name}
                         </h3>
 
                         <p className="mt-1 text-sm text-[#5d6d7d]">
