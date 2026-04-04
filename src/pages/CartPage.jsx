@@ -41,54 +41,59 @@ export default function CartPage() {
       ) : (
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <section className="space-y-4">
-            {cartItems.map((item) => (
-              <div
-                key={item.id}
-                className="grid gap-4 rounded-[1.75rem] border border-[#ddd0c1] bg-white p-5 shadow-[0_10px_30px_rgba(36,56,77,0.04)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d7c8b5] hover:shadow-[0_18px_40px_rgba(36,56,77,0.08)] sm:grid-cols-[120px_1fr]"
-              >
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="h-32 w-full rounded-[1.25rem] object-cover transition-all duration-300 hover:scale-[1.02] sm:w-[120px]"
-                />
+            {cartItems.map((item) => {
+              const imageSrc =
+                item.image || item.image_url || 'https://placehold.co/600x600?text=Produto'
 
-                <div className="flex flex-col justify-between gap-4">
-                  <div>
-                    <h3 className="text-xl font-semibold text-[#24384d]">{item.name}</h3>
-                    <p className="mt-2 text-sm text-[#5d6d7d]">
-                      {formatPrice(item.price)} cada
-                    </p>
-                  </div>
+              return (
+                <div
+                  key={item.id}
+                  className="grid gap-4 rounded-[1.75rem] border border-[#ddd0c1] bg-white p-5 shadow-[0_10px_30px_rgba(36,56,77,0.04)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d7c8b5] hover:shadow-[0_18px_40px_rgba(36,56,77,0.08)] sm:grid-cols-[120px_1fr]"
+                >
+                  <img
+                    src={imageSrc}
+                    alt={item.name}
+                    className="h-32 w-full rounded-[1.25rem] object-cover transition-all duration-300 hover:scale-[1.02] sm:w-[120px]"
+                  />
 
-                  <div className="flex flex-wrap items-center gap-3">
-                    <button
-                      onClick={() => decreaseQuantity(item.id)}
-                      className="rounded-full border border-[#d8cbb9] bg-white px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cbb9a3] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
-                    >
-                      -
-                    </button>
+                  <div className="flex flex-col justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl font-semibold text-[#24384d]">{item.name}</h3>
+                      <p className="mt-2 text-sm text-[#5d6d7d]">
+                        {formatPrice(item.price)} cada
+                      </p>
+                    </div>
 
-                    <span className="min-w-[40px] rounded-full border border-[#ebe1d6] bg-[#fcfaf7] px-3 py-2 text-center text-sm font-semibold text-[#24384d]">
-                      {item.quantity}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        onClick={() => decreaseQuantity(item.id)}
+                        className="rounded-full border border-[#d8cbb9] bg-white px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cbb9a3] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
+                      >
+                        -
+                      </button>
 
-                    <button
-                      onClick={() => increaseQuantity(item.id)}
-                      className="rounded-full border border-[#d8cbb9] bg-white px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cbb9a3] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
-                    >
-                      +
-                    </button>
+                      <span className="min-w-[40px] rounded-full border border-[#ebe1d6] bg-[#fcfaf7] px-3 py-2 text-center text-sm font-semibold text-[#24384d]">
+                        {item.quantity}
+                      </span>
 
-                    <button
-                      onClick={() => removeFromCart(item.id)}
-                      className="rounded-full bg-[#efe3d4] px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#e5d4c0] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
-                    >
-                      Remover
-                    </button>
+                      <button
+                        onClick={() => increaseQuantity(item.id)}
+                        className="rounded-full border border-[#d8cbb9] bg-white px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cbb9a3] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
+                      >
+                        +
+                      </button>
+
+                      <button
+                        onClick={() => removeFromCart(item.id)}
+                        className="rounded-full bg-[#efe3d4] px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#e5d4c0] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
+                      >
+                        Remover
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </section>
 
           <aside className="h-max rounded-[2rem] border border-[#ddd0c1] bg-white/80 p-8 shadow-[0_14px_40px_rgba(36,56,77,0.05)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(36,56,77,0.08)]">

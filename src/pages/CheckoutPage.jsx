@@ -1,12 +1,117 @@
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { formatPrice, storeConfig } from '../data/storeData'
 import { useCart } from '../context/CartContext'
+
+const initialForm = {
+  fullName: '',
+  whatsapp: '',
+  email: '',
+  address: '',
+  number: '',
+  complement: '',
+  neighborhood: '',
+  city: '',
+  state: '',
+  zipCode: '',
+  payment: 'Pix',
+  notes: '',
+}
+
+function Field({ value, onChange, placeholder, className = '', ...props }) {
+  return (
+    <input
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className={`rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)] ${className}`}
+      {...props}
+    />
+  )
+}
 
 export default function CheckoutPage() {
   const navigate = useNavigate()
   const { cartItems, cartTotal, clearCart } = useCart()
 
+  const [form, setForm] = useState(initialForm)
+  const [error, setError] = useState('')
+
+  function handleChange(event) {
+    const { name, value } = event.target
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const whatsappLink = useMemo(() => {
+    const itemsText = cartItems
+      .map((item) => {
+        const totalItem = item.price * item.quantity
+        return `- ${item.name} | Qtd: ${item.quantity} | Total: ${formatPrice(totalItem)}`
+      })
+      .join('\n')
+
+    const addressText = [
+      form.address && `Endereço: ${form.address}`,
+      form.number && `Número: ${form.number}`,
+      form.complement && `Complemento: ${form.complement}`,
+      form.neighborhood && `Bairro: ${form.neighborhood}`,
+      form.city && `Cidade: ${form.city}`,
+      form.state && `Estado: ${form.state}`,
+      form.zipCode && `CEP: ${form.zipCode}`,
+    ]
+      .filter(Boolean)
+      .join('\n')
+
+    const message = `Olá, quero finalizar meu pedido na Toque de Bençãos.
+
+*DADOS DO CLIENTE*
+Nome: ${form.fullName}
+WhatsApp: ${form.whatsapp}
+E-mail: ${form.email}
+
+*ENTREGA*
+${addressText || 'Endereço não informado'}
+
+*PAGAMENTO*
+Forma de pagamento: ${form.payment}
+
+*ITENS DO PEDIDO*
+${itemsText}
+
+*TOTAL DOS PRODUTOS*
+${formatPrice(cartTotal)}
+
+${form.notes ? `*OBSERVAÇÕES*\n${form.notes}` : ''}`
+
+    return `https://wa.me/${storeConfig.whatsappNumber}?text=${encodeURIComponent(message)}`
+  }, [cartItems, cartTotal, form])
+
+  function validateForm() {
+    if (!form.fullName.trim()) return 'Preencha seu nome completo.'
+    if (!form.whatsapp.trim()) return 'Preencha seu WhatsApp.'
+    if (!form.email.trim()) return 'Preencha seu e-mail.'
+    if (!form.address.trim()) return 'Preencha o endereço.'
+    if (!form.number.trim()) return 'Preencha o número.'
+    if (!form.neighborhood.trim()) return 'Preencha o bairro.'
+    if (!form.city.trim()) return 'Preencha a cidade.'
+    if (!form.state.trim()) return 'Preencha o estado.'
+    if (!form.zipCode.trim()) return 'Preencha o CEP.'
+    return ''
+  }
+
   function handleFinishOrder() {
+    const validationError = validateForm()
+
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
+    setError('')
+    window.open(whatsappLink, '_blank')
     clearCart()
     navigate('/pedido-sucesso')
   }
@@ -53,44 +158,67 @@ export default function CheckoutPage() {
           </h2>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <input
-              className="rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+            <Field
+              name="fullName"
+              value={form.fullName}
+              onChange={handleChange}
               placeholder="Nome completo"
             />
-            <input
-              className="rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+            <Field
+              name="whatsapp"
+              value={form.whatsapp}
+              onChange={handleChange}
               placeholder="WhatsApp"
             />
-            <input
-              className="sm:col-span-2 rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+            <Field
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
               placeholder="E-mail"
+              className="sm:col-span-2"
             />
-            <input
-              className="sm:col-span-2 rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+            <Field
+              name="address"
+              value={form.address}
+              onChange={handleChange}
               placeholder="Endereço"
+              className="sm:col-span-2"
             />
-            <input
-              className="rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+            <Field
+              name="number"
+              value={form.number}
+              onChange={handleChange}
               placeholder="Número"
             />
-            <input
-              className="rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+            <Field
+              name="complement"
+              value={form.complement}
+              onChange={handleChange}
               placeholder="Complemento"
             />
-            <input
-              className="rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+            <Field
+              name="neighborhood"
+              value={form.neighborhood}
+              onChange={handleChange}
               placeholder="Bairro"
             />
-            <input
-              className="rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+            <Field
+              name="city"
+              value={form.city}
+              onChange={handleChange}
               placeholder="Cidade"
             />
-            <input
-              className="rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+            <Field
+              name="state"
+              value={form.state}
+              onChange={handleChange}
               placeholder="Estado"
             />
-            <input
-              className="rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+            <Field
+              name="zipCode"
+              value={form.zipCode}
+              onChange={handleChange}
               placeholder="CEP"
             />
           </div>
@@ -100,20 +228,34 @@ export default function CheckoutPage() {
           </h2>
 
           <div className="mt-6 grid gap-4">
-            <label className="flex items-center gap-3 rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#d1c1ad] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]">
-              <input type="radio" name="payment" defaultChecked />
-              <span className="text-sm font-semibold text-[#24384d]">Pix</span>
-            </label>
+            {['Pix', 'Cartão de crédito', 'Cartão de débito'].map((option) => (
+              <label
+                key={option}
+                className="flex items-center gap-3 rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#d1c1ad] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]"
+              >
+                <input
+                  type="radio"
+                  name="payment"
+                  value={option}
+                  checked={form.payment === option}
+                  onChange={handleChange}
+                />
+                <span className="text-sm font-semibold text-[#24384d]">{option}</span>
+              </label>
+            ))}
+          </div>
 
-            <label className="flex items-center gap-3 rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#d1c1ad] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]">
-              <input type="radio" name="payment" />
-              <span className="text-sm font-semibold text-[#24384d]">Cartão de crédito</span>
+          <div className="mt-8">
+            <label className="mb-2 block text-sm font-semibold text-[#24384d]">
+              Observações do pedido
             </label>
-
-            <label className="flex items-center gap-3 rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#d1c1ad] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]">
-              <input type="radio" name="payment" />
-              <span className="text-sm font-semibold text-[#24384d]">Cartão de débito</span>
-            </label>
+            <textarea
+              name="notes"
+              value={form.notes}
+              onChange={handleChange}
+              placeholder="Ex.: horário melhor para entrega, referência do endereço, observações gerais..."
+              className="min-h-[120px] w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+            />
           </div>
 
           <div className="mt-10 rounded-[1.5rem] border border-[#ddd0c1] bg-white p-5 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d6c7b5] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]">
@@ -125,6 +267,12 @@ export default function CheckoutPage() {
               WhatsApp da loja: {storeConfig.whatsappDisplay}
             </p>
           </div>
+
+          {error ? (
+            <div className="mt-6 rounded-2xl border border-[#f0d0d0] bg-[#fff5f5] px-4 py-3 text-sm text-[#a33b3b]">
+              {error}
+            </div>
+          ) : null}
         </section>
 
         <aside className="h-max rounded-[2rem] border border-[#ddd0c1] bg-white/80 p-8 shadow-[0_14px_40px_rgba(36,56,77,0.05)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(36,56,77,0.08)]">
@@ -133,29 +281,34 @@ export default function CheckoutPage() {
           </div>
 
           <div className="mt-6 space-y-4">
-            {cartItems.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center gap-4 rounded-[1.25rem] border border-[#eadfce] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d7c8b5] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]"
-              >
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="h-20 w-20 rounded-[1rem] object-cover transition-all duration-300 hover:scale-[1.03]"
-                />
-                <div className="flex-1">
+            {cartItems.map((item) => {
+              const imageSrc =
+                item.image || item.image_url || 'https://placehold.co/600x600?text=Produto'
+
+              return (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-4 rounded-[1.25rem] border border-[#eadfce] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d7c8b5] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]"
+                >
+                  <img
+                    src={imageSrc}
+                    alt={item.name}
+                    className="h-20 w-20 rounded-[1rem] object-cover transition-all duration-300 hover:scale-[1.03]"
+                  />
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-[#24384d]">
+                      {item.name}
+                    </div>
+                    <div className="mt-1 text-xs text-[#6d7a88]">
+                      Quantidade: {item.quantity}
+                    </div>
+                  </div>
                   <div className="text-sm font-semibold text-[#24384d]">
-                    {item.name}
-                  </div>
-                  <div className="mt-1 text-xs text-[#6d7a88]">
-                    Quantidade: {item.quantity}
+                    {formatPrice(item.price * item.quantity)}
                   </div>
                 </div>
-                <div className="text-sm font-semibold text-[#24384d]">
-                  {formatPrice(item.price * item.quantity)}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           <div className="mt-8 border-t border-[#eadfce] pt-6">
@@ -185,7 +338,7 @@ export default function CheckoutPage() {
             onClick={handleFinishOrder}
             className="mt-8 w-full rounded-full bg-[#24384d] px-6 py-4 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(36,56,77,0.14)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#1d3042] hover:shadow-[0_18px_34px_rgba(36,56,77,0.24)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
           >
-            Confirmar pedido
+            Enviar pedido pelo WhatsApp
           </button>
 
           <Link
