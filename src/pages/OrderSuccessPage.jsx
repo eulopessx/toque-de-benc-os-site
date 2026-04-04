@@ -74,11 +74,11 @@ export default function OrderSuccessPage() {
               </Link>
 
               <Link
-                to="/minha-conta"
-                className="block w-full rounded-full border border-[#d8cbb9] bg-white px-6 py-4 text-center text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cbb9a3] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)]"
-              >
-                Ir para minha conta
-              </Link>
+  to="/catalogo"
+  className="block w-full rounded-full border border-[#d8cbb9] bg-white px-6 py-4 text-center text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cbb9a3] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)]"
+>
+  Ver mais produtos
+</Link>
 
               <Link
                 to="/"

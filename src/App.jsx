@@ -11,9 +11,7 @@ import ContactPage from './pages/ContactPage'
 import HomePage from './pages/HomePage'
 import OrderSuccessPage from './pages/OrderSuccessPage'
 import ProductPage from './pages/ProductPage'
-import { supabase } from './lib/supabaseClient'
 
-console.log(supabase)
 export default function App() {
   return (
     <HashRouter>

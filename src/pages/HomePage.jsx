@@ -7,6 +7,7 @@ import {
   categories,
   testimonials,
   normalizeProductFromDatabase,
+  storeConfig,
 } from '../data/storeData'
 
 function Metric({ label, text }) {
@@ -42,12 +43,12 @@ const benefits = [
     text: 'Entrega com atualização clara do pedido e uma experiência pensada para transmitir segurança do começo ao fim.',
   },
   {
-    title: 'Pagamento seguro',
-    text: 'Pix, cartão e outras formas de pagamento com checkout simples, claro e confortável em qualquer tela.',
+    title: 'Pagamento simples',
+    text: 'Pix, cartão e atendimento direto pelo WhatsApp com uma jornada mais clara e confortável em qualquer tela.',
   },
   {
     title: 'Atendimento humanizado',
-    text: 'Suporte próximo via WhatsApp para dúvidas, tamanhos, pedidos e acompanhamento personalizado.',
+    text: 'Suporte próximo para dúvidas sobre tamanhos, pedidos, disponibilidade e acompanhamento personalizado.',
   },
 ]
 
@@ -63,14 +64,14 @@ const faqs = [
       'Sim. O layout foi pensado para ser responsivo, elegante e fácil de usar tanto no celular quanto no computador.',
   },
   {
-    question: 'Quais formas de pagamento estarão disponíveis?',
+    question: 'Como funciona o pedido?',
     answer:
-      'A estrutura já está preparada para exibir Pix, cartão e outros meios de pagamento de forma clara e segura.',
+      'O cliente pode montar o carrinho, preencher o checkout e concluir o pedido pelo WhatsApp da loja com mais praticidade.',
   },
   {
-    question: 'Posso falar com a loja pelo WhatsApp?',
+    question: 'Posso falar com a loja diretamente?',
     answer:
-      'Sim. O projeto inclui destaque para atendimento rápido e humanizado via WhatsApp.',
+      'Sim. O atendimento da loja também pode ser feito pelo WhatsApp para dúvidas, informações de frete e finalização do pedido.',
   },
 ]
 
@@ -135,8 +136,8 @@ export default function HomePage() {
 
             <p className="mt-6 max-w-2xl text-sm leading-7 text-[#526374] sm:text-base lg:text-lg">
               A Toque de Bençãos foi pensada para oferecer uma experiência visual
-              mais sofisticada, acolhedora e profissional, destacando baby looks,
-              camisetas e peças infantis com muito mais beleza, clareza e presença.
+              sofisticada, acolhedora e profissional, destacando baby looks,
+              camisetas e peças infantis com mais beleza, clareza e confiança.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -147,18 +148,20 @@ export default function HomePage() {
                 Ver catálogo
               </Link>
 
-              <Link
-                to="/contato"
+              <a
+                href={`https://wa.me/${storeConfig.whatsappNumber}`}
+                target="_blank"
+                rel="noreferrer"
                 className="rounded-full border border-[#b8a894] bg-white/70 px-7 py-3 text-center text-sm font-semibold text-[#24384d] shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#aa977f] hover:bg-[#efe3d4] hover:shadow-[0_14px_28px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
               >
                 Falar com a loja
-              </Link>
+              </a>
             </div>
 
             <div className="mt-10 grid gap-4 border-t border-[#eadfce] pt-8 sm:grid-cols-3">
               <Metric
                 label="5 categorias"
-                text="organizadas conforme o seu mix real de produtos"
+                text="organizadas conforme o mix real da loja"
               />
               <Metric
                 label="100% responsivo"
@@ -242,7 +245,7 @@ export default function HomePage() {
             centered
             eyebrow="Produtos em destaque"
             title="Mais vendidos da Toque de Bençãos"
-            text="Agora a vitrine principal já pode exibir os produtos reais cadastrados no painel admin."
+            text="A vitrine principal já pode exibir os produtos reais cadastrados no painel admin."
           />
 
           {loadingProducts ? (
@@ -277,8 +280,7 @@ export default function HomePage() {
               Novo posicionamento da marca
             </div>
             <h2 className="mt-4 text-3xl font-semibold sm:text-4xl">
-              Menos genérico. Mais identidade, mais confiança e mais clareza
-              para vender.
+              Menos genérico. Mais identidade, mais confiança e mais clareza para vender.
             </h2>
           </div>
 
@@ -335,8 +337,7 @@ export default function HomePage() {
             Sobre a experiência
           </div>
           <h2 className="mt-4 text-3xl font-semibold text-[#24384d] sm:text-4xl">
-            O site foi refinado para parecer uma marca de verdade, pronta para
-            crescer e vender com presença.
+            O site foi refinado para parecer uma marca de verdade, pronta para crescer e vender com presença.
           </h2>
           <p className="mt-5 text-sm leading-7 text-[#526374] sm:text-base">
             Em vez de um layout genérico, a proposta foi construir uma vitrine
@@ -412,12 +413,10 @@ export default function HomePage() {
               Relacionamento com clientes
             </div>
             <h2 className="mt-4 text-3xl font-semibold sm:text-4xl">
-              Receba novidades, coleções e ofertas especiais da Toque de
-              Bençãos
+              Fique por dentro das novidades, coleções e lançamentos da Toque de Bençãos
             </h2>
             <p className="mt-4 max-w-2xl text-white/80">
-              Cadastre seu e-mail e mantenha sua base de clientes aquecida com
-              lançamentos e campanhas sazonais.
+              Fortaleça o relacionamento com seus clientes e mantenha sua audiência aquecida com novidades da marca.
             </p>
           </div>
 
@@ -430,9 +429,14 @@ export default function HomePage() {
               placeholder="Digite seu e-mail"
               className="rounded-2xl border border-white/20 bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#94a3b8] hover:border-white/40 focus:border-white/60 focus:shadow-[0_0_0_4px_rgba(255,255,255,0.12)]"
             />
-            <button className="mt-4 rounded-2xl bg-[#c99d4d] px-5 py-4 text-sm font-semibold text-white shadow-[0_12px_26px_rgba(201,157,77,0.25)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#bc9043] hover:shadow-[0_18px_34px_rgba(201,157,77,0.34)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.98]">
-              Quero receber novidades
-            </button>
+            <a
+              href={`https://wa.me/${storeConfig.whatsappNumber}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 rounded-2xl bg-[#c99d4d] px-5 py-4 text-center text-sm font-semibold text-white shadow-[0_12px_26px_rgba(201,157,77,0.25)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#bc9043] hover:shadow-[0_18px_34px_rgba(201,157,77,0.34)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.98]"
+            >
+              Falar com a loja
+            </a>
           </div>
         </div>
       </section>
