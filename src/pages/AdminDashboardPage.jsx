@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { formatPrice } from '../data/storeData'
+import { categories, formatPrice } from '../data/storeData'
 
 const ADMIN_PRODUCT_DRAFT_KEY = 'toque-admin-product-draft'
 const STORAGE_BUCKET = 'product-images'
@@ -33,6 +33,7 @@ function StatusBadge({ children, variant = 'default' }) {
     highlight: 'bg-[#24384d] text-white',
     muted: 'bg-[#efe3d4] text-[#24384d]',
     success: 'bg-[#edf6ef] text-[#2d6a3f] border border-[#cfe3d3]',
+    danger: 'bg-[#fff1f1] text-[#9f2f2f] border border-[#f0cccc]',
   }
 
   return (
@@ -40,6 +41,17 @@ function StatusBadge({ children, variant = 'default' }) {
       {children}
     </span>
   )
+}
+
+function createSlug(text) {
+  return String(text || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
 }
 
 export default function AdminDashboardPage() {
@@ -138,12 +150,28 @@ export default function AdminDashboardPage() {
 
     return products.filter((product) => {
       return (
-        (product.title || '').toLowerCase().includes(term) ||
-        (product.category || '').toLowerCase().includes(term) ||
-        (product.description || '').toLowerCase().includes(term)
+        String(product.title || product.name || '').toLowerCase().includes(term) ||
+        String(product.category || '').toLowerCase().includes(term) ||
+        String(product.description || '').toLowerCase().includes(term)
       )
     })
   }, [products, search])
+
+  const previewImage = useMemo(() => {
+    if (selectedImageFile) {
+      return URL.createObjectURL(selectedImageFile)
+    }
+
+    return form.image_url?.trim() || ''
+  }, [selectedImageFile, form.image_url])
+
+  useEffect(() => {
+    return () => {
+      if (selectedImageFile && previewImage?.startsWith('blob:')) {
+        URL.revokeObjectURL(previewImage)
+      }
+    }
+  }, [selectedImageFile, previewImage])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -153,16 +181,12 @@ export default function AdminDashboardPage() {
     try {
       const cleanTitle = form.title.trim()
       const finalImageUrl = await uploadImageAndGetUrl(selectedImageFile)
+      const finalSlug = createSlug(cleanTitle)
 
       const payload = {
         title: cleanTitle,
-        slug: cleanTitle
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .replace(/[^a-z0-9\s-]/g, '')
-          .replace(/\s+/g, '-'),
         name: cleanTitle,
+        slug: finalSlug,
         category: form.category.trim(),
         price: Number(form.price) || 0,
         compare_price: form.compare_price ? Number(form.compare_price) : null,
@@ -262,6 +286,10 @@ export default function AdminDashboardPage() {
       return
     }
 
+    if (editingId === id) {
+      handleCancelEdit()
+    }
+
     setMessage('Produto removido com sucesso.')
     loadProducts()
   }
@@ -296,7 +324,7 @@ export default function AdminDashboardPage() {
                 {editingId ? 'Editar produto' : 'Novo produto'}
               </h2>
               <p className="mt-2 text-sm text-[#5d6d7d]">
-                Agora você pode enviar imagem direto pelo painel.
+                Cadastre produtos, envie imagem e mantenha o catálogo atualizado.
               </p>
             </div>
 
@@ -318,13 +346,19 @@ export default function AdminDashboardPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <FieldLabel>Categoria</FieldLabel>
-                <input
+                <select
                   name="category"
                   value={form.category}
                   onChange={handleChange}
-                  placeholder="Ex.: baby-look-feminina"
-                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
-                />
+                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+                >
+                  <option value="">Selecione uma categoria</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -400,13 +434,21 @@ export default function AdminDashboardPage() {
               />
             </div>
 
-            {form.image_url ? (
+            {previewImage ? (
               <div className="overflow-hidden rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-3">
-                <div className="mb-3 text-sm font-semibold text-[#24384d]">
-                  Pré-visualização da imagem
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div className="text-sm font-semibold text-[#24384d]">
+                    Pré-visualização da imagem
+                  </div>
+                  {form.price ? (
+                    <StatusBadge variant="muted">
+                      {formatPrice(form.price)}
+                    </StatusBadge>
+                  ) : null}
                 </div>
+
                 <img
-                  src={form.image_url}
+                  src={previewImage}
                   alt="Pré-visualização"
                   className="h-64 w-full rounded-[1rem] object-cover"
                 />
@@ -455,6 +497,15 @@ export default function AdminDashboardPage() {
                 />
                 Produto ativo
               </label>
+            </div>
+
+            <div className="rounded-[1.5rem] border border-[#e4d8c9] bg-[#fcfaf7] p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a835f]">
+                Slug gerado
+              </div>
+              <div className="mt-2 break-all text-sm font-medium text-[#24384d]">
+                {createSlug(form.title) || 'Será gerado automaticamente'}
+              </div>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
