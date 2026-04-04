@@ -1,18 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import {
   formatPrice,
   getCategoryName,
   normalizeProductFromDatabase,
+  storeConfig,
 } from '../data/storeData'
 import { useCart } from '../context/CartContext'
 
-function InfoPill({ children }) {
+function SelectableSizePill({ children, active, onClick }) {
   return (
-    <span className="rounded-full border border-[#ddd0c1] bg-white px-4 py-2 text-xs font-semibold text-[#526374] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cdbda8] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)]">
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full border px-4 py-2 text-xs font-semibold shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 ${
+        active
+          ? 'border-[#24384d] bg-[#24384d] text-white'
+          : 'border-[#ddd0c1] bg-white text-[#526374] hover:border-[#cdbda8] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)]'
+      }`}
+    >
       {children}
-    </span>
+    </button>
   )
 }
 
@@ -22,10 +31,17 @@ export default function ProductPage() {
 
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [selectedSize, setSelectedSize] = useState('')
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
     loadProduct()
   }, [id])
+
+  useEffect(() => {
+    setSelectedSize('')
+    setMessage('')
+  }, [product?.id])
 
   async function loadProduct() {
     setLoading(true)
@@ -48,6 +64,20 @@ export default function ProductPage() {
     setLoading(false)
   }
 
+  function handleAddToCart() {
+    if (product.sizes?.length && !selectedSize) {
+      setMessage('Selecione o tamanho desejado antes de adicionar ao carrinho.')
+      return
+    }
+
+    addToCart(product, selectedSize)
+    setMessage('Produto adicionado ao carrinho com sucesso.')
+  }
+
+  const imageSrc = useMemo(() => {
+    return product?.image_url || product?.image || '/placeholder-product.jpg'
+  }, [product])
+
   if (loading) {
     return (
       <main className="mx-auto max-w-7xl px-4 py-12 lg:px-8 lg:py-16">
@@ -68,11 +98,10 @@ export default function ProductPage() {
             Produto não encontrado
           </div>
           <h1 className="mt-4 text-3xl font-semibold text-[#24384d] sm:text-4xl">
-            Não encontramos este produto no catálogo.
+            Não encontramos esta peça no catálogo.
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-[#5d6d7d] sm:text-base">
-            Pode ser que ele ainda não tenha sido cadastrado, tenha sido removido
-            ou que o link não esteja correto.
+            É possível que ela ainda não esteja disponível, tenha sido removida ou que o link acessado não esteja correto.
           </p>
           <Link
             to="/catalogo"
@@ -84,11 +113,6 @@ export default function ProductPage() {
       </main>
     )
   }
-
-  const imageSrc =
-    product?.image_url ||
-    product?.image ||
-    '/placeholder-product.jpg'
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 lg:px-8 lg:py-14">
@@ -123,7 +147,7 @@ export default function ProductPage() {
 
         <div className="rounded-[2rem] border border-[#ddd0c1] bg-white/80 p-8 shadow-[0_14px_40px_rgba(36,56,77,0.05)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(36,56,77,0.08)] sm:p-10">
           <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a835f]">
-            Produto em destaque
+            Moda católica com identidade
           </div>
 
           <h1 className="mt-4 text-3xl font-semibold text-[#24384d] sm:text-4xl">
@@ -147,19 +171,40 @@ export default function ProductPage() {
           </div>
 
           <div className="mt-2 text-sm text-[#6d7a88]">
-            ou em até 6x sem complicação
+            Elegância, fé e conforto em uma peça pensada para o seu dia a dia.
           </div>
 
-          <div className="mt-8">
-            <div className="text-sm font-semibold text-[#24384d]">
-              Tamanhos disponíveis
+          {product.sizes?.length ? (
+            <div className="mt-8">
+              <div className="text-sm font-semibold text-[#24384d]">
+                Escolha o tamanho
+              </div>
+              <div className="mt-4 flex flex-wrap gap-3">
+                {product.sizes.map((size) => (
+                  <SelectableSizePill
+                    key={size}
+                    active={selectedSize === size}
+                    onClick={() => {
+                      setSelectedSize(size)
+                      setMessage('')
+                    }}
+                  >
+                    {size}
+                  </SelectableSizePill>
+                ))}
+              </div>
+
+              {selectedSize ? (
+                <p className="mt-4 text-sm font-medium text-[#3b648c]">
+                  Tamanho selecionado: {selectedSize}
+                </p>
+              ) : (
+                <p className="mt-4 text-sm text-[#6d7a88]">
+                  Selecione o tamanho desejado para continuar.
+                </p>
+              )}
             </div>
-            <div className="mt-4 flex flex-wrap gap-3">
-              {product.sizes?.map((size) => (
-                <InfoPill key={size}>{size}</InfoPill>
-              ))}
-            </div>
-          </div>
+          ) : null}
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             <div className="rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d2c3b1] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]">
@@ -173,36 +218,44 @@ export default function ProductPage() {
 
             <div className="rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d2c3b1] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]">
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a835f]">
-                Compra segura
+                Finalização do pedido
               </div>
               <div className="mt-2 text-sm font-semibold text-[#24384d]">
-                Pix, cartão e atendimento via WhatsApp
+                Entrega local via WhatsApp ou envio com pagamento combinado
               </div>
             </div>
           </div>
 
+          {message ? (
+            <div className="mt-6 rounded-2xl border border-[#d8e2eb] bg-[#f4f9fc] px-4 py-3 text-sm text-[#31506d]">
+              {message}
+            </div>
+          ) : null}
+
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <button
-              onClick={() => addToCart(product)}
+              onClick={handleAddToCart}
               className="rounded-full bg-[#24384d] px-7 py-4 text-center text-sm font-semibold text-white shadow-[0_12px_26px_rgba(36,56,77,0.20)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#1d3042] hover:shadow-[0_18px_34px_rgba(36,56,77,0.28)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
             >
               Adicionar ao carrinho
             </button>
 
             <a
-              href="https://wa.me/5500000000000"
+              href={`https://wa.me/${storeConfig.whatsappNumber}`}
+              target="_blank"
+              rel="noreferrer"
               className="rounded-full border border-[#b8a894] bg-white/70 px-7 py-4 text-center text-sm font-semibold text-[#24384d] shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#aa977f] hover:bg-[#efe3d4] hover:shadow-[0_14px_28px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
             >
-              Comprar pelo WhatsApp
+              Falar com a loja
             </a>
           </div>
 
           <div className="mt-8 rounded-[1.5rem] border border-[#ddd0c1] bg-white p-5 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d6c7b5] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a835f]">
-              Observação
+              Sobre esta peça
             </div>
             <p className="mt-3 text-sm leading-7 text-[#5d6d7d]">
-              Esta página agora já pode exibir os produtos reais cadastrados no painel admin.
+              Cada peça da Toque de Bençãos busca unir modéstia, bom gosto e presença, valorizando uma estética feminina, familiar e cristã com acabamento acolhedor e elegante.
             </p>
           </div>
         </div>

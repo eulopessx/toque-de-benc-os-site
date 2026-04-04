@@ -16,48 +16,49 @@ export default function AboutPage() {
           </div>
 
           <h1 className="mt-4 text-3xl font-semibold text-[#24384d] sm:text-4xl">
-            Delicadeza, propósito e uma presença digital mais forte para a
-            Toque de Bençãos
+            Fé, delicadeza e elegância em cada detalhe da Toque de Bençãos
           </h1>
 
           <p className="mt-5 text-sm leading-7 text-[#5a6b7b] sm:text-base">
-            A Toque de Bençãos nasce com uma proposta acolhedora e cheia de
-            identidade. O objetivo do site é transformar essa essência em uma
-            experiência visual mais elegante, organizada e profissional, sem
-            perder a leveza que faz parte da marca.
+            A Toque de Bençãos nasceu com o desejo de unir beleza, modéstia e
+            identidade cristã em uma proposta de moda acolhedora e cheia de
+            significado. Mais do que apresentar peças, a marca busca transmitir
+            leveza, feminilidade, cuidado e uma presença visual coerente com os
+            valores da fé católica.
           </p>
 
           <p className="mt-5 text-sm leading-7 text-[#5a6b7b] sm:text-base">
-            O projeto foi construído para valorizar melhor sua logo, melhorar a
-            navegação e apresentar os produtos com mais clareza. Assim, a loja
-            transmite confiança tanto para quem acessa pelo celular quanto para
-            quem acessa pelo computador.
+            O site foi pensado para refletir essa essência com mais clareza e
+            profissionalismo, valorizando a logo, organizando melhor a navegação
+            e apresentando o catálogo de maneira elegante, intuitiva e
+            agradável. Assim, cada visita se transforma em uma experiência mais
+            bonita, mais segura e mais alinhada ao posicionamento da marca.
           </p>
 
           <p className="mt-5 text-sm leading-7 text-[#5a6b7b] sm:text-base">
-            Além do visual refinado, a estrutura também foi alinhada ao mix real
-            da sua loja: Baby Look Feminina, Camiseta Masculina, Baby Look
-            Infantil, Camiseta Infantil e Body para Bebês. Isso deixa o catálogo
-            mais profissional, mais sofisticado e mais coerente com a proposta
-            da marca.
+            A estrutura da loja foi desenvolvida de acordo com as categorias
+            reais trabalhadas pela marca, como Baby Look Feminina, Camiseta
+            Masculina, Baby Look Infantil, Camiseta Infantil e Body para Bebês.
+            Isso fortalece a identidade da vitrine e ajuda a loja a crescer com
+            mais consistência, presença e credibilidade.
           </p>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <div className="rounded-[1.5rem] border border-[#ddd0c1] bg-white p-5">
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a835f]">
-                Identidade
+                Essência
               </div>
               <div className="mt-2 text-lg font-semibold text-[#24384d]">
-                Visual leve, elegante e acolhedor
+                Moda católica com suavidade e propósito
               </div>
             </div>
 
             <div className="rounded-[1.5rem] border border-[#ddd0c1] bg-white p-5">
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a835f]">
-                Estrutura
+                Navegação
               </div>
               <div className="mt-2 text-lg font-semibold text-[#24384d]">
-                Navegação clara e responsiva
+                Estrutura clara, elegante e responsiva
               </div>
             </div>
 
@@ -66,7 +67,7 @@ export default function AboutPage() {
                 Catálogo
               </div>
               <div className="mt-2 text-lg font-semibold text-[#24384d]">
-                Categorias mais profissionais
+                Peças organizadas com mais presença e beleza
               </div>
             </div>
 
@@ -75,7 +76,7 @@ export default function AboutPage() {
                 Experiência
               </div>
               <div className="mt-2 text-lg font-semibold text-[#24384d]">
-                Mais confiança para converter
+                Mais confiança para acolher e converter
               </div>
             </div>
           </div>
@@ -88,15 +89,16 @@ export default function AboutPage() {
         </div>
 
         <h2 className="mt-4 text-3xl font-semibold text-[#24384d] sm:text-4xl">
-          Uma loja pensada para vestir com beleza, simplicidade e presença
+          Vestir com beleza, recato, identidade e presença cristã
         </h2>
 
         <p className="mt-5 max-w-4xl text-sm leading-7 text-[#5a6b7b] sm:text-base">
-          A intenção da Toque de Bençãos é oferecer peças com estética delicada
-          e apresentação cuidadosa, criando uma experiência mais agradável para
-          o cliente e uma vitrine mais forte para a marca. O site foi desenhado
-          para crescer junto com a loja e servir como base para uma operação
-          digital ainda mais completa no futuro.
+          A proposta da Toque de Bençãos é oferecer uma vitrine digital que una
+          bom gosto, acolhimento e profissionalismo, criando uma presença mais
+          forte para a marca e uma experiência mais agradável para quem compra.
+          Cada detalhe do site foi pensado para valorizar a identidade da loja,
+          fortalecer a confiança do cliente e servir como base para um
+          crescimento sólido, bonito e coerente com os valores da moda católica.
         </p>
       </section>
     </main>

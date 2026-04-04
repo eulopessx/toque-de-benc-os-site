@@ -19,7 +19,7 @@ export default function CartPage() {
           Carrinho
         </div>
         <h1 className="mt-4 text-3xl font-semibold text-[#24384d] sm:text-4xl">
-          Seus produtos selecionados
+          Suas peças selecionadas
         </h1>
       </div>
 
@@ -29,7 +29,7 @@ export default function CartPage() {
             Seu carrinho está vazio
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#5d6d7d] sm:text-base">
-            Explore o catálogo e adicione os produtos que mais combinam com sua loja.
+            Explore o catálogo e adicione as peças que mais combinam com a proposta da sua compra.
           </p>
           <Link
             to="/catalogo"
@@ -47,7 +47,7 @@ export default function CartPage() {
 
               return (
                 <div
-                  key={item.id}
+                  key={item.cartKey}
                   className="grid gap-4 rounded-[1.75rem] border border-[#ddd0c1] bg-white p-5 shadow-[0_10px_30px_rgba(36,56,77,0.04)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d7c8b5] hover:shadow-[0_18px_40px_rgba(36,56,77,0.08)] sm:grid-cols-[120px_1fr]"
                 >
                   <img
@@ -62,11 +62,16 @@ export default function CartPage() {
                       <p className="mt-2 text-sm text-[#5d6d7d]">
                         {formatPrice(item.price)} cada
                       </p>
+                      {item.selectedSize ? (
+                        <p className="mt-2 text-sm font-medium text-[#3b648c]">
+                          Tamanho escolhido: {item.selectedSize}
+                        </p>
+                      ) : null}
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
                       <button
-                        onClick={() => decreaseQuantity(item.id)}
+                        onClick={() => decreaseQuantity(item.cartKey)}
                         className="rounded-full border border-[#d8cbb9] bg-white px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cbb9a3] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
                       >
                         -
@@ -77,14 +82,14 @@ export default function CartPage() {
                       </span>
 
                       <button
-                        onClick={() => increaseQuantity(item.id)}
+                        onClick={() => increaseQuantity(item.cartKey)}
                         className="rounded-full border border-[#d8cbb9] bg-white px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cbb9a3] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
                       >
                         +
                       </button>
 
                       <button
-                        onClick={() => removeFromCart(item.id)}
+                        onClick={() => removeFromCart(item.cartKey)}
                         className="rounded-full bg-[#efe3d4] px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#e5d4c0] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
                       >
                         Remover
@@ -111,7 +116,7 @@ export default function CartPage() {
             <div className="mt-4 flex items-center justify-between border-b border-[#eadfce] pb-4">
               <span className="text-sm text-[#5d6d7d]">Envio</span>
               <span className="text-sm font-semibold text-[#24384d]">
-                Calculado depois
+                Definido na finalização
               </span>
             </div>
 
@@ -126,7 +131,7 @@ export default function CartPage() {
               to="/checkout"
               className="mt-8 block w-full rounded-full bg-[#24384d] px-6 py-4 text-center text-sm font-semibold text-white shadow-[0_12px_26px_rgba(36,56,77,0.20)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#1d3042] hover:shadow-[0_18px_34px_rgba(36,56,77,0.28)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
             >
-              Finalizar pedido
+              Ir para a finalização
             </Link>
 
             <button

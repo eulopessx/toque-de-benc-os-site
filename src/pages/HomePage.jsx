@@ -39,39 +39,39 @@ function FeaturePill({ text }) {
 
 const benefits = [
   {
-    title: 'Envio para todo Brasil',
-    text: 'Entrega com atualização clara do pedido e uma experiência pensada para transmitir segurança do começo ao fim.',
+    title: 'Envio para todo o Brasil',
+    text: 'Uma jornada de compra organizada, com mais clareza, acolhimento e confiança em cada etapa.',
   },
   {
-    title: 'Pagamento simples',
-    text: 'Pix, cartão e atendimento direto pelo WhatsApp com uma jornada mais clara e confortável em qualquer tela.',
+    title: 'Finalização simples',
+    text: 'Pedidos locais podem ser atendidos com proximidade pelo WhatsApp, enquanto pedidos de outras regiões seguem com atendimento estruturado.',
   },
   {
     title: 'Atendimento humanizado',
-    text: 'Suporte próximo para dúvidas sobre tamanhos, pedidos, disponibilidade e acompanhamento personalizado.',
+    text: 'A loja valoriza o contato próximo para orientar sobre tamanhos, disponibilidade, envio e acompanhamento do pedido.',
   },
 ]
 
 const faqs = [
   {
-    question: 'Quais produtos a loja vende?',
+    question: 'Quais peças encontro na loja?',
     answer:
-      'A Toque de Bençãos trabalha com Baby Look Feminina, Camiseta Masculina, Baby Look Infantil, Camiseta Infantil e Body para Bebês.',
+      'A Toque de Bençãos trabalha com Baby Look Feminina, Camiseta Masculina, Baby Look Infantil, Camiseta Infantil e Body para Bebês, sempre com uma proposta visual delicada, elegante e cristã.',
   },
   {
     question: 'O site funciona bem no celular?',
     answer:
-      'Sim. O layout foi pensado para ser responsivo, elegante e fácil de usar tanto no celular quanto no computador.',
+      'Sim. Toda a estrutura foi pensada para oferecer uma navegação bonita, leve e confortável tanto no celular quanto no computador.',
   },
   {
-    question: 'Como funciona o pedido?',
+    question: 'Como funciona a finalização do pedido?',
     answer:
-      'O cliente pode montar o carrinho, preencher o checkout e concluir o pedido pelo WhatsApp da loja com mais praticidade.',
+      'O cliente pode montar o carrinho, escolher as peças desejadas, informar os dados necessários e seguir com a finalização conforme a modalidade de atendimento da loja.',
   },
   {
-    question: 'Posso falar com a loja diretamente?',
+    question: 'Posso falar diretamente com a loja?',
     answer:
-      'Sim. O atendimento da loja também pode ser feito pelo WhatsApp para dúvidas, informações de frete e finalização do pedido.',
+      'Sim. O atendimento pelo WhatsApp faz parte da experiência da marca e permite um contato mais próximo, claro e acolhedor.',
   },
 ]
 
@@ -127,17 +127,18 @@ export default function HomePage() {
             </div>
 
             <div className="inline-flex rounded-full bg-[#d9cdbd] px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#24384d] shadow-[0_8px_18px_rgba(36,56,77,0.05)] transition-all duration-300 hover:-translate-y-0.5 sm:text-xs">
-              Moda cristã casual para toda a família
+              Moda católica com delicadeza, recato e identidade
             </div>
 
             <h1 className="mt-6 max-w-3xl font-serif text-4xl leading-[0.95] text-[#24384d] sm:text-5xl lg:text-7xl">
-              Moda com delicadeza, identidade e uma apresentação à altura da sua marca.
+              Peças que unem beleza, suavidade e presença cristã em uma vitrine elegante.
             </h1>
 
             <p className="mt-6 max-w-2xl text-sm leading-7 text-[#526374] sm:text-base lg:text-lg">
-              A Toque de Bençãos foi pensada para oferecer uma experiência visual
-              sofisticada, acolhedora e profissional, destacando baby looks,
-              camisetas e peças infantis com mais beleza, clareza e confiança.
+              A Toque de Bençãos foi criada para oferecer uma experiência visual
+              acolhedora, refinada e profissional, valorizando peças femininas,
+              masculinas, infantis e infantis para bebês com mais clareza, fé e
+              bom gosto.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -161,15 +162,15 @@ export default function HomePage() {
             <div className="mt-10 grid gap-4 border-t border-[#eadfce] pt-8 sm:grid-cols-3">
               <Metric
                 label="5 categorias"
-                text="organizadas conforme o mix real da loja"
+                text="organizadas de acordo com o mix real da loja"
               />
               <Metric
                 label="100% responsivo"
-                text="visual elegante no celular e no computador"
+                text="navegação bonita no celular e no computador"
               />
               <Metric
-                label="Compra simples"
-                text="navegação clara para facilitar conversão"
+                label="Atendimento próximo"
+                text="experiência pensada para acolher e orientar"
               />
             </div>
           </div>
@@ -184,12 +185,11 @@ export default function HomePage() {
 
             <div className="relative z-10 flex h-full flex-col justify-end p-6 text-white sm:p-8 lg:p-10">
               <div className="mb-4 inline-flex w-max rounded-full border border-white/40 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-0.5">
-                Destaque visual
+                Presença da marca
               </div>
 
               <h2 className="max-w-md text-2xl font-semibold leading-tight sm:text-3xl lg:text-4xl">
-                Identidade delicada, visual premium e apresentação profissional
-                para surpreender seus clientes.
+                Uma apresentação mais delicada, mais confiante e mais fiel à identidade da loja.
               </h2>
             </div>
           </div>
@@ -199,8 +199,8 @@ export default function HomePage() {
       <section className="mx-auto max-w-7xl px-4 py-12 lg:px-8 lg:py-16">
         <SectionHeader
           eyebrow="Categorias principais"
-          title="A loja foi organizada exatamente para os produtos que você vende"
-          text="Tudo foi planejado para destacar baby look feminina, camiseta masculina, linha infantil e bodies de forma clara, elegante e simples."
+          title="A vitrine foi organizada para acolher cada linha da loja com clareza e beleza"
+          text="Tudo foi pensado para valorizar baby looks, camisetas, peças infantis e bodies com uma apresentação mais elegante, simples e profissional."
         />
 
         <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -244,8 +244,8 @@ export default function HomePage() {
           <SectionHeader
             centered
             eyebrow="Produtos em destaque"
-            title="Mais vendidos da Toque de Bençãos"
-            text="A vitrine principal já pode exibir os produtos reais cadastrados no painel admin."
+            title="Peças selecionadas para inspirar sua escolha"
+            text="A vitrine principal já pode apresentar os produtos reais cadastrados no painel da loja."
           />
 
           {loadingProducts ? (
@@ -266,7 +266,7 @@ export default function HomePage() {
                 Nenhum produto em destaque ainda
               </h3>
               <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#5d6d7d] sm:text-base">
-                Cadastre produtos no painel admin para que eles apareçam aqui.
+                Cadastre peças no painel administrativo para que elas apareçam nesta vitrine principal.
               </p>
             </div>
           )}
@@ -277,18 +277,18 @@ export default function HomePage() {
         <div className="grid gap-6 rounded-[2rem] border border-[#ddd0c1] bg-gradient-to-r from-[#24384d] to-[#31506d] p-8 text-white shadow-[0_20px_60px_rgba(36,56,77,0.16)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(36,56,77,0.22)] lg:grid-cols-[1fr_1fr] lg:p-12">
           <div>
             <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d9cdbd]">
-              Novo posicionamento da marca
+              Posicionamento da marca
             </div>
             <h2 className="mt-4 text-3xl font-semibold sm:text-4xl">
-              Menos genérico. Mais identidade, mais confiança e mais clareza para vender.
+              Mais identidade, mais delicadeza visual e mais confiança para vender com presença.
             </h2>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <BrandChip text="Logo visível e valorizada" />
-            <BrandChip text="Layout premium e leve" />
+            <BrandChip text="Logo valorizada" />
+            <BrandChip text="Layout leve e elegante" />
             <BrandChip text="Estrutura pensada para celular" />
-            <BrandChip text="Foco no catálogo real da loja" />
+            <BrandChip text="Vitrine alinhada ao catálogo real" />
           </div>
         </div>
       </section>
@@ -298,8 +298,8 @@ export default function HomePage() {
           <SectionHeader
             centered
             eyebrow="Experiência de compra"
-            title="Uma loja bonita, simples de usar e pronta para transmitir profissionalismo"
-            text="A proposta aqui não foi criar só um visual bonito. Foi criar um site que ajude o cliente a confiar, navegar rápido e comprar com mais facilidade."
+            title="Uma loja acolhedora, clara e preparada para transmitir segurança"
+            text="A intenção não foi apenas criar um site bonito, mas construir uma experiência que aproxime, inspire confiança e torne a compra mais agradável."
           />
 
           <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -337,19 +337,20 @@ export default function HomePage() {
             Sobre a experiência
           </div>
           <h2 className="mt-4 text-3xl font-semibold text-[#24384d] sm:text-4xl">
-            O site foi refinado para parecer uma marca de verdade, pronta para crescer e vender com presença.
+            Uma presença digital mais bela, mais coerente e mais preparada para crescer
           </h2>
           <p className="mt-5 text-sm leading-7 text-[#526374] sm:text-base">
-            Em vez de um layout genérico, a proposta foi construir uma vitrine
-            com mais alma e mais coerência com a sua logo. A paleta foi
-            suavizada, a tipografia ficou mais elegante e os blocos foram
-            reorganizados para destacar cada categoria sem poluição visual.
+            Em vez de uma estrutura genérica, a proposta foi construir uma
+            vitrine com mais alma, mais cuidado estético e mais coerência com a
+            identidade da marca. A paleta, a tipografia e a organização dos
+            blocos foram pensadas para acolher o olhar do cliente e transmitir
+            confiança de forma natural.
           </p>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <FeaturePill text="Seções com leitura fácil" />
-            <FeaturePill text="CTA visível para conversão" />
-            <FeaturePill text="Rodapé completo e profissional" />
+            <FeaturePill text="Seções com leitura leve" />
+            <FeaturePill text="CTA claro para conversão" />
+            <FeaturePill text="Rodapé mais profissional" />
             <FeaturePill text="Menu adaptado para celular" />
           </div>
         </div>
@@ -359,7 +360,7 @@ export default function HomePage() {
         <SectionHeader
           centered
           eyebrow="Depoimentos"
-          title="O que o visual da loja transmite para quem compra"
+          title="A sensação que a loja transmite para quem chega até ela"
         />
 
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
@@ -385,7 +386,7 @@ export default function HomePage() {
           <SectionHeader
             centered
             eyebrow="Perguntas frequentes"
-            title="Detalhes pensados para facilitar a operação da loja"
+            title="Respostas para tornar a experiência mais clara e tranquila"
           />
 
           <div className="mt-10 space-y-4">
@@ -413,10 +414,12 @@ export default function HomePage() {
               Relacionamento com clientes
             </div>
             <h2 className="mt-4 text-3xl font-semibold sm:text-4xl">
-              Fique por dentro das novidades, coleções e lançamentos da Toque de Bençãos
+              Mantenha-se perto das novidades, lançamentos e coleções da Toque de Bençãos
             </h2>
             <p className="mt-4 max-w-2xl text-white/80">
-              Fortaleça o relacionamento com seus clientes e mantenha sua audiência aquecida com novidades da marca.
+              Fortaleça o vínculo com a marca e acompanhe de perto as novidades
+              que valorizam a beleza, a delicadeza e a identidade da moda
+              católica.
             </p>
           </div>
 

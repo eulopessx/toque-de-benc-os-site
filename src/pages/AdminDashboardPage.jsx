@@ -4,6 +4,7 @@ import { categories, formatPrice } from '../data/storeData'
 
 const ADMIN_PRODUCT_DRAFT_KEY = 'toque-admin-product-draft'
 const STORAGE_BUCKET = 'product-images'
+const SIZE_OPTIONS = ['P', 'M', 'G', 'GG', 'G1', 'G2', 'G3']
 
 const emptyForm = {
   title: '',
@@ -13,7 +14,7 @@ const emptyForm = {
   badge: '',
   image_url: '',
   description: '',
-  sizes: '',
+  sizes: [],
   stock: '',
   featured: false,
   active: true,
@@ -33,7 +34,6 @@ function StatusBadge({ children, variant = 'default' }) {
     highlight: 'bg-[#24384d] text-white',
     muted: 'bg-[#efe3d4] text-[#24384d]',
     success: 'bg-[#edf6ef] text-[#2d6a3f] border border-[#cfe3d3]',
-    danger: 'bg-[#fff1f1] text-[#9f2f2f] border border-[#f0cccc]',
   }
 
   return (
@@ -106,6 +106,19 @@ export default function AdminDashboardPage() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }))
+  }
+
+  function handleSizeToggle(size) {
+    setForm((prev) => {
+      const exists = prev.sizes.includes(size)
+
+      return {
+        ...prev,
+        sizes: exists
+          ? prev.sizes.filter((item) => item !== size)
+          : [...prev.sizes, size],
+      }
+    })
   }
 
   function handleFileChange(e) {
@@ -198,10 +211,7 @@ export default function AdminDashboardPage() {
         featured: form.featured,
         active: form.active,
         badge: form.badge.trim() || null,
-        sizes: form.sizes
-          .split(',')
-          .map((item) => item.trim())
-          .filter(Boolean),
+        sizes: form.sizes,
       }
 
       if (!payload.title || !payload.category || !payload.image_url || !payload.description) {
@@ -234,7 +244,7 @@ export default function AdminDashboardPage() {
           return
         }
 
-        setMessage('Produto criado com sucesso.')
+        setMessage('Produto cadastrado com sucesso.')
       }
 
       setForm(emptyForm)
@@ -261,7 +271,7 @@ export default function AdminDashboardPage() {
       badge: product.badge || '',
       image_url: product.image_url || product.image || '',
       description: product.description || '',
-      sizes: Array.isArray(product.sizes) ? product.sizes.join(', ') : '',
+      sizes: Array.isArray(product.sizes) ? product.sizes : [],
       stock: product.stock || '',
       featured: !!product.featured,
       active: product.active ?? true,
@@ -312,7 +322,7 @@ export default function AdminDashboardPage() {
           Gerencie os produtos da loja
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-[#5d6d7d] sm:text-base">
-          Cadastre, edite e organize os produtos reais da Toque de Bençãos.
+          Cadastre, edite e organize as peças da sua moda católica com mais clareza, beleza e praticidade.
         </p>
       </div>
 
@@ -324,7 +334,7 @@ export default function AdminDashboardPage() {
                 {editingId ? 'Editar produto' : 'Novo produto'}
               </h2>
               <p className="mt-2 text-sm text-[#5d6d7d]">
-                Cadastre produtos, envie imagem e mantenha o catálogo atualizado.
+                Cadastre produtos, envie imagem e mantenha o catálogo da loja sempre atualizado.
               </p>
             </div>
 
@@ -338,7 +348,7 @@ export default function AdminDashboardPage() {
                 name="title"
                 value={form.title}
                 onChange={handleChange}
-                placeholder="Ex.: Baby Look Fé e Graça"
+                placeholder="Ex.: Baby Look Nossa Senhora das Graças"
                 className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
               />
             </div>
@@ -367,7 +377,7 @@ export default function AdminDashboardPage() {
                   name="badge"
                   value={form.badge}
                   onChange={handleChange}
-                  placeholder="Ex.: Novo"
+                  placeholder="Ex.: Novo, Mais vendido"
                   className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
                 />
               </div>
@@ -461,20 +471,33 @@ export default function AdminDashboardPage() {
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                placeholder="Descreva o produto"
+                placeholder="Descreva a peça com um texto elegante, acolhedor e alinhado à proposta católica da loja."
                 className="min-h-[120px] w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
               />
             </div>
 
             <div>
-              <FieldLabel>Tamanhos</FieldLabel>
-              <input
-                name="sizes"
-                value={form.sizes}
-                onChange={handleChange}
-                placeholder="P, M, G, GG"
-                className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
-              />
+              <FieldLabel>Tamanhos disponíveis</FieldLabel>
+              <div className="grid gap-3 sm:grid-cols-4">
+                {SIZE_OPTIONS.map((size) => {
+                  const active = form.sizes.includes(size)
+
+                  return (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => handleSizeToggle(size)}
+                      className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-200 ease-out ${
+                        active
+                          ? 'border-[#24384d] bg-[#24384d] text-white shadow-[0_12px_24px_rgba(36,56,77,0.14)]'
+                          : 'border-[#ddd0c1] bg-[#fbf8f4] text-[#24384d] hover:-translate-y-0.5 hover:border-[#ccbda9] hover:bg-white'
+                      }`}
+                    >
+                      {active ? `✓ ${size}` : size}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">

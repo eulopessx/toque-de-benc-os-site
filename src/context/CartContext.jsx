@@ -3,6 +3,10 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 const CartContext = createContext(null)
 const CART_STORAGE_KEY = 'toque-de-bencaos-cart'
 
+function generateCartKey(product, selectedSize) {
+  return `${product.id}__${selectedSize || 'sem-tamanho'}`
+}
+
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState(() => {
     try {
@@ -22,41 +26,52 @@ export function CartProvider({ children }) {
     }
   }, [cartItems])
 
-  function addToCart(product) {
+  function addToCart(product, selectedSize = '') {
+    const normalizedSize = selectedSize || ''
+    const cartKey = generateCartKey(product, normalizedSize)
+
     setCartItems((prev) => {
-      const existing = prev.find((item) => item.id === product.id)
+      const existing = prev.find((item) => item.cartKey === cartKey)
 
       if (existing) {
         return prev.map((item) =>
-          item.id === product.id
+          item.cartKey === cartKey
             ? { ...item, quantity: item.quantity + 1 }
             : item
         )
       }
 
-      return [...prev, { ...product, quantity: 1 }]
+      return [
+        ...prev,
+        {
+          ...product,
+          cartKey,
+          selectedSize: normalizedSize,
+          quantity: 1,
+        },
+      ]
     })
   }
 
-  function removeFromCart(productId) {
-    setCartItems((prev) => prev.filter((item) => item.id !== productId))
+  function removeFromCart(cartKey) {
+    setCartItems((prev) => prev.filter((item) => item.cartKey !== cartKey))
   }
 
-  function increaseQuantity(productId) {
+  function increaseQuantity(cartKey) {
     setCartItems((prev) =>
       prev.map((item) =>
-        item.id === productId
+        item.cartKey === cartKey
           ? { ...item, quantity: item.quantity + 1 }
           : item
       )
     )
   }
 
-  function decreaseQuantity(productId) {
+  function decreaseQuantity(cartKey) {
     setCartItems((prev) =>
       prev
         .map((item) =>
-          item.id === productId
+          item.cartKey === cartKey
             ? { ...item, quantity: item.quantity - 1 }
             : item
         )

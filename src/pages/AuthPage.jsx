@@ -32,11 +32,11 @@ export default function AuthPage() {
       if (mode === 'login') {
         const { error } = await signIn(email, password)
         if (error) throw error
-        setMessage('Login realizado com sucesso.')
+        setMessage('Acesso realizado com sucesso.')
       } else {
         const { error } = await signUp(email, password, fullName)
         if (error) throw error
-        setMessage('Conta criada. Verifique seu e-mail se a confirmação estiver ativa.')
+        setMessage('Conta criada com sucesso. Verifique seu e-mail caso a confirmação esteja ativa.')
       }
     } catch (error) {
       setMessage(error.message || 'Não foi possível continuar.')
@@ -69,10 +69,12 @@ export default function AuthPage() {
             Acesso à conta
           </div>
           <h1 className="mt-4 text-3xl font-semibold sm:text-4xl">
-            Entre ou crie sua conta para acompanhar seus pedidos e comprar com mais facilidade.
+            Entre ou crie sua conta para acompanhar seus pedidos com mais praticidade
           </h1>
           <p className="mt-5 text-sm leading-7 text-white/80 sm:text-base">
-            Você poderá usar e-mail e senha ou continuar com Google e Apple.
+            Sua conta permite uma experiência de compra mais organizada,
+            facilitando o acompanhamento do pedido e tornando sua jornada na
+            loja mais simples, acolhedora e segura.
           </p>
         </div>
 
@@ -81,7 +83,7 @@ export default function AuthPage() {
             <button
               type="button"
               onClick={() => setMode('login')}
-              className={`rounded-full px-5 py-3 text-sm font-semibold ${
+              className={`rounded-full px-5 py-3 text-sm font-semibold transition-all duration-200 ${
                 mode === 'login'
                   ? 'bg-[#24384d] text-white'
                   : 'border border-[#d8cbb9] text-[#24384d]'
@@ -93,7 +95,7 @@ export default function AuthPage() {
             <button
               type="button"
               onClick={() => setMode('signup')}
-              className={`rounded-full px-5 py-3 text-sm font-semibold ${
+              className={`rounded-full px-5 py-3 text-sm font-semibold transition-all duration-200 ${
                 mode === 'signup'
                   ? 'bg-[#24384d] text-white'
                   : 'border border-[#d8cbb9] text-[#24384d]'
@@ -109,7 +111,7 @@ export default function AuthPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Seu nome"
-                className="w-full rounded-2xl border border-[#ddd0c1] px-4 py-4 outline-none"
+                className="w-full rounded-2xl border border-[#ddd0c1] px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] focus:border-[#c9b8a3] focus:bg-[#fffdfa]"
               />
             ) : null}
 
@@ -118,7 +120,7 @@ export default function AuthPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Seu e-mail"
-              className="w-full rounded-2xl border border-[#ddd0c1] px-4 py-4 outline-none"
+              className="w-full rounded-2xl border border-[#ddd0c1] px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] focus:border-[#c9b8a3] focus:bg-[#fffdfa]"
             />
 
             <input
@@ -126,13 +128,13 @@ export default function AuthPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Sua senha"
-              className="w-full rounded-2xl border border-[#ddd0c1] px-4 py-4 outline-none"
+              className="w-full rounded-2xl border border-[#ddd0c1] px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] focus:border-[#c9b8a3] focus:bg-[#fffdfa]"
             />
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-2xl bg-[#24384d] px-5 py-4 text-sm font-semibold text-white"
+              className="w-full rounded-2xl bg-[#24384d] px-5 py-4 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1d3042] disabled:opacity-70"
             >
               {submitting
                 ? 'Processando...'
@@ -146,7 +148,7 @@ export default function AuthPage() {
             <button
               type="button"
               onClick={handleGoogle}
-              className="rounded-2xl border border-[#ddd0c1] px-5 py-4 text-sm font-semibold text-[#24384d]"
+              className="rounded-2xl border border-[#ddd0c1] px-5 py-4 text-sm font-semibold text-[#24384d] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#fcfaf7]"
             >
               Continuar com Google
             </button>
@@ -154,14 +156,14 @@ export default function AuthPage() {
             <button
               type="button"
               onClick={handleApple}
-              className="rounded-2xl border border-[#ddd0c1] px-5 py-4 text-sm font-semibold text-[#24384d]"
+              className="rounded-2xl border border-[#ddd0c1] px-5 py-4 text-sm font-semibold text-[#24384d] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#fcfaf7]"
             >
               Continuar com Apple
             </button>
           </div>
 
           {message ? (
-            <p className="mt-5 text-sm text-[#5d6d7d]">{message}</p>
+            <p className="mt-5 text-sm leading-7 text-[#5d6d7d]">{message}</p>
           ) : null}
         </div>
       </div>

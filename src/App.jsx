@@ -1,6 +1,7 @@
 import { HashRouter, Route, Routes } from 'react-router-dom'
-import AppLayout from './layout/AppLayout'
+import ScrollToTop from './components/ScrollToTop'
 import ProtectedAdminRoute from './components/ProtectedAdminRoute'
+import AppLayout from './layout/AppLayout'
 import AboutPage from './pages/AboutPage'
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import AuthPage from './pages/AuthPage'
@@ -15,6 +16,8 @@ import ProductPage from './pages/ProductPage'
 export default function App() {
   return (
     <HashRouter>
+      <ScrollToTop />
+
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />

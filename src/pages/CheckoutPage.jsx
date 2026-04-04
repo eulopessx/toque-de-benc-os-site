@@ -4,6 +4,7 @@ import { formatPrice, storeConfig } from '../data/storeData'
 import { useCart } from '../context/CartContext'
 
 const initialForm = {
+  orderType: 'local',
   fullName: '',
   whatsapp: '',
   email: '',
@@ -49,7 +50,7 @@ export default function CheckoutPage() {
     const itemsText = cartItems
       .map((item) => {
         const totalItem = item.price * item.quantity
-        return `- ${item.name} | Qtd: ${item.quantity} | Total: ${formatPrice(totalItem)}`
+        return `- ${item.name}${item.selectedSize ? ` | Tam: ${item.selectedSize}` : ''} | Qtd: ${item.quantity} | Total: ${formatPrice(totalItem)}`
       })
       .join('\n')
 
@@ -65,7 +66,20 @@ export default function CheckoutPage() {
       .filter(Boolean)
       .join('\n')
 
+    const orderTypeLabel =
+      form.orderType === 'local'
+        ? 'Entrega local / retirada com atendimento via WhatsApp'
+        : 'Envio para outra região com solicitação de pagamento'
+
+    const paymentText =
+      form.orderType === 'local'
+        ? 'Pagamento combinado no atendimento'
+        : form.payment
+
     const message = `Olá, quero finalizar meu pedido na Toque de Bençãos.
+
+*TIPO DE ATENDIMENTO*
+${orderTypeLabel}
 
 *DADOS DO CLIENTE*
 Nome: ${form.fullName}
@@ -73,10 +87,10 @@ WhatsApp: ${form.whatsapp}
 E-mail: ${form.email}
 
 *ENTREGA*
-${addressText || 'Endereço não informado'}
+${form.orderType === 'local' ? 'Pedido para atendimento local.' : addressText || 'Endereço não informado'}
 
-*PAGAMENTO*
-Forma de pagamento: ${form.payment}
+*FORMA DE PAGAMENTO*
+${paymentText}
 
 *ITENS DO PEDIDO*
 ${itemsText}
@@ -93,12 +107,16 @@ ${form.notes ? `*OBSERVAÇÕES*\n${form.notes}` : ''}`
     if (!form.fullName.trim()) return 'Preencha seu nome completo.'
     if (!form.whatsapp.trim()) return 'Preencha seu WhatsApp.'
     if (!form.email.trim()) return 'Preencha seu e-mail.'
-    if (!form.address.trim()) return 'Preencha o endereço.'
-    if (!form.number.trim()) return 'Preencha o número.'
-    if (!form.neighborhood.trim()) return 'Preencha o bairro.'
-    if (!form.city.trim()) return 'Preencha a cidade.'
-    if (!form.state.trim()) return 'Preencha o estado.'
-    if (!form.zipCode.trim()) return 'Preencha o CEP.'
+
+    if (form.orderType === 'shipping') {
+      if (!form.address.trim()) return 'Preencha o endereço.'
+      if (!form.number.trim()) return 'Preencha o número.'
+      if (!form.neighborhood.trim()) return 'Preencha o bairro.'
+      if (!form.city.trim()) return 'Preencha a cidade.'
+      if (!form.state.trim()) return 'Preencha o estado.'
+      if (!form.zipCode.trim()) return 'Preencha o CEP.'
+    }
+
     return ''
   }
 
@@ -127,7 +145,7 @@ ${form.notes ? `*OBSERVAÇÕES*\n${form.notes}` : ''}`
             Seu carrinho está vazio
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#5d6d7d] sm:text-base">
-            Adicione produtos antes de continuar para o checkout.
+            Adicione produtos antes de continuar para a finalização do pedido.
           </p>
           <Link
             to="/catalogo"
@@ -144,17 +162,59 @@ ${form.notes ? `*OBSERVAÇÕES*\n${form.notes}` : ''}`
     <main className="mx-auto max-w-7xl px-4 py-10 lg:px-8 lg:py-14">
       <div className="mb-8">
         <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a835f]">
-          Checkout
+          Finalização do pedido
         </div>
         <h1 className="mt-4 text-3xl font-semibold text-[#24384d] sm:text-4xl">
-          Finalize seu pedido
+          Escolha a melhor forma de concluir sua compra
         </h1>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
         <section className="rounded-[2rem] border border-[#ddd0c1] bg-white/80 p-8 shadow-[0_14px_40px_rgba(36,56,77,0.05)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(36,56,77,0.08)] sm:p-10">
           <h2 className="text-2xl font-semibold text-[#24384d]">
-            Dados para entrega
+            Tipo de atendimento
+          </h2>
+
+          <div className="mt-6 grid gap-4">
+            <label className="flex items-start gap-3 rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)]">
+              <input
+                type="radio"
+                name="orderType"
+                value="local"
+                checked={form.orderType === 'local'}
+                onChange={handleChange}
+              />
+              <div>
+                <div className="text-sm font-semibold text-[#24384d]">
+                  Entrega local ou retirada
+                </div>
+                <div className="mt-1 text-sm text-[#5d6d7d]">
+                  Ideal para quem está mais perto e deseja concluir o atendimento diretamente com a loja pelo WhatsApp.
+                </div>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-3 rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)]">
+              <input
+                type="radio"
+                name="orderType"
+                value="shipping"
+                checked={form.orderType === 'shipping'}
+                onChange={handleChange}
+              />
+              <div>
+                <div className="text-sm font-semibold text-[#24384d]">
+                  Envio para outras regiões
+                </div>
+                <div className="mt-1 text-sm text-[#5d6d7d]">
+                  Para pedidos de fora, os dados são enviados para a loja e o pagamento segue com atendimento organizado e seguro.
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <h2 className="mt-10 text-2xl font-semibold text-[#24384d]">
+            Seus dados
           </h2>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -178,72 +238,81 @@ ${form.notes ? `*OBSERVAÇÕES*\n${form.notes}` : ''}`
               placeholder="E-mail"
               className="sm:col-span-2"
             />
-            <Field
-              name="address"
-              value={form.address}
-              onChange={handleChange}
-              placeholder="Endereço"
-              className="sm:col-span-2"
-            />
-            <Field
-              name="number"
-              value={form.number}
-              onChange={handleChange}
-              placeholder="Número"
-            />
-            <Field
-              name="complement"
-              value={form.complement}
-              onChange={handleChange}
-              placeholder="Complemento"
-            />
-            <Field
-              name="neighborhood"
-              value={form.neighborhood}
-              onChange={handleChange}
-              placeholder="Bairro"
-            />
-            <Field
-              name="city"
-              value={form.city}
-              onChange={handleChange}
-              placeholder="Cidade"
-            />
-            <Field
-              name="state"
-              value={form.state}
-              onChange={handleChange}
-              placeholder="Estado"
-            />
-            <Field
-              name="zipCode"
-              value={form.zipCode}
-              onChange={handleChange}
-              placeholder="CEP"
-            />
-          </div>
 
-          <h2 className="mt-10 text-2xl font-semibold text-[#24384d]">
-            Forma de pagamento
-          </h2>
-
-          <div className="mt-6 grid gap-4">
-            {['Pix', 'Cartão de crédito', 'Cartão de débito'].map((option) => (
-              <label
-                key={option}
-                className="flex items-center gap-3 rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#d1c1ad] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]"
-              >
-                <input
-                  type="radio"
-                  name="payment"
-                  value={option}
-                  checked={form.payment === option}
+            {form.orderType === 'shipping' ? (
+              <>
+                <Field
+                  name="address"
+                  value={form.address}
                   onChange={handleChange}
+                  placeholder="Endereço"
+                  className="sm:col-span-2"
                 />
-                <span className="text-sm font-semibold text-[#24384d]">{option}</span>
-              </label>
-            ))}
+                <Field
+                  name="number"
+                  value={form.number}
+                  onChange={handleChange}
+                  placeholder="Número"
+                />
+                <Field
+                  name="complement"
+                  value={form.complement}
+                  onChange={handleChange}
+                  placeholder="Complemento"
+                />
+                <Field
+                  name="neighborhood"
+                  value={form.neighborhood}
+                  onChange={handleChange}
+                  placeholder="Bairro"
+                />
+                <Field
+                  name="city"
+                  value={form.city}
+                  onChange={handleChange}
+                  placeholder="Cidade"
+                />
+                <Field
+                  name="state"
+                  value={form.state}
+                  onChange={handleChange}
+                  placeholder="Estado"
+                />
+                <Field
+                  name="zipCode"
+                  value={form.zipCode}
+                  onChange={handleChange}
+                  placeholder="CEP"
+                />
+              </>
+            ) : null}
           </div>
+
+          {form.orderType === 'shipping' ? (
+            <>
+              <h2 className="mt-10 text-2xl font-semibold text-[#24384d]">
+                Forma de pagamento desejada
+              </h2>
+
+              <div className="mt-6 grid gap-4">
+                {['Pix', 'Cartão de crédito', 'Cartão de débito'].map((option) => (
+                  <label
+                    key={option}
+                    className="flex items-center gap-3 rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#d1c1ad] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]"
+                  >
+                    <input
+                      type="radio"
+                      name="payment"
+                      value={option}
+                      checked={form.payment === option}
+                      onChange={handleChange}
+                    />
+                    <span className="text-sm font-semibold text-[#24384d]">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </>
+          ) : null}
 
           <div className="mt-8">
             <label className="mb-2 block text-sm font-semibold text-[#24384d]">
@@ -253,7 +322,7 @@ ${form.notes ? `*OBSERVAÇÕES*\n${form.notes}` : ''}`
               name="notes"
               value={form.notes}
               onChange={handleChange}
-              placeholder="Ex.: horário melhor para entrega, referência do endereço, observações gerais..."
+              placeholder="Ex.: referência do endereço, melhor horário para contato, observações da entrega..."
               className="min-h-[120px] w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
             />
           </div>
@@ -263,8 +332,7 @@ ${form.notes ? `*OBSERVAÇÕES*\n${form.notes}` : ''}`
               Atendimento da loja
             </div>
             <p className="mt-3 text-sm leading-7 text-[#5d6d7d]">
-              Se preferir, você também pode concluir o pedido diretamente pelo
-              WhatsApp da loja: {storeConfig.whatsappDisplay}
+              Se preferir, você também pode concluir o pedido diretamente pelo WhatsApp da loja: {storeConfig.whatsappDisplay}
             </p>
           </div>
 
@@ -287,7 +355,7 @@ ${form.notes ? `*OBSERVAÇÕES*\n${form.notes}` : ''}`
 
               return (
                 <div
-                  key={item.id}
+                  key={item.cartKey}
                   className="flex items-center gap-4 rounded-[1.25rem] border border-[#eadfce] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d7c8b5] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]"
                 >
                   <img
@@ -302,6 +370,11 @@ ${form.notes ? `*OBSERVAÇÕES*\n${form.notes}` : ''}`
                     <div className="mt-1 text-xs text-[#6d7a88]">
                       Quantidade: {item.quantity}
                     </div>
+                    {item.selectedSize ? (
+                      <div className="mt-1 text-xs text-[#6d7a88]">
+                        Tamanho: {item.selectedSize}
+                      </div>
+                    ) : null}
                   </div>
                   <div className="text-sm font-semibold text-[#24384d]">
                     {formatPrice(item.price * item.quantity)}
@@ -322,7 +395,7 @@ ${form.notes ? `*OBSERVAÇÕES*\n${form.notes}` : ''}`
             <div className="mt-3 flex items-center justify-between">
               <span className="text-sm text-[#5d6d7d]">Envio</span>
               <span className="text-sm font-semibold text-[#24384d]">
-                Calculado após contato
+                {form.orderType === 'local' ? 'Combinado no atendimento' : 'Calculado após contato'}
               </span>
             </div>
 
@@ -338,7 +411,9 @@ ${form.notes ? `*OBSERVAÇÕES*\n${form.notes}` : ''}`
             onClick={handleFinishOrder}
             className="mt-8 w-full rounded-full bg-[#24384d] px-6 py-4 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(36,56,77,0.14)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#1d3042] hover:shadow-[0_18px_34px_rgba(36,56,77,0.24)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
           >
-            Enviar pedido pelo WhatsApp
+            {form.orderType === 'local'
+              ? 'Enviar pedido pelo WhatsApp'
+              : 'Solicitar finalização do pedido'}
           </button>
 
           <Link
