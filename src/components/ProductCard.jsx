@@ -5,12 +5,17 @@ import { useCart } from '../context/CartContext'
 export default function ProductCard({ product }) {
   const { addToCart } = useCart()
 
+  const imageSrc =
+    product?.image ||
+    product?.image_url ||
+    '/placeholder-product.jpg'
+
   return (
     <article className="group overflow-hidden rounded-[1.8rem] border border-[#e4d8cb] bg-[#fdfbf8] shadow-[0_14px_45px_rgba(36,56,77,0.05)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-[#d8cab8] hover:shadow-[0_24px_60px_rgba(36,56,77,0.10)]">
       <Link to={`/produto/${product.id}`} className="block">
         <div className="relative h-80 overflow-hidden">
           <img
-            src={product.image}
+            src={imageSrc}
             alt={product.name}
             className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.045]"
           />

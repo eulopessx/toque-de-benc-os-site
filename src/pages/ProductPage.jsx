@@ -85,6 +85,11 @@ export default function ProductPage() {
     )
   }
 
+  const imageSrc =
+    product?.image_url ||
+    product?.image ||
+    '/placeholder-product.jpg'
+
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 lg:px-8 lg:py-14">
       <div className="mb-8">
@@ -101,13 +106,17 @@ export default function ProductPage() {
         <div className="group overflow-hidden rounded-[2rem] border border-[#ddd0c1] bg-white shadow-[0_14px_40px_rgba(36,56,77,0.05)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_24px_56px_rgba(36,56,77,0.10)]">
           <div className="relative overflow-hidden">
             <img
-              src={product.image}
+              src={imageSrc}
               alt={product.name}
               className="h-full min-h-[420px] w-full object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
             />
-            <div className="absolute left-5 top-5 rounded-full bg-[#24384d] px-4 py-2 text-xs font-semibold text-white shadow-[0_10px_20px_rgba(36,56,77,0.18)] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:bg-[#1f3347]">
-              {product.badge}
-            </div>
+
+            {product.badge ? (
+              <div className="absolute left-5 top-5 rounded-full bg-[#24384d] px-4 py-2 text-xs font-semibold text-white shadow-[0_10px_20px_rgba(36,56,77,0.18)] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:bg-[#1f3347]">
+                {product.badge}
+              </div>
+            ) : null}
+
             <div className="absolute inset-0 bg-gradient-to-t from-[#24384d]/10 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
           </div>
         </div>
@@ -142,7 +151,9 @@ export default function ProductPage() {
           </div>
 
           <div className="mt-8">
-            <div className="text-sm font-semibold text-[#24384d]">Tamanhos disponíveis</div>
+            <div className="text-sm font-semibold text-[#24384d]">
+              Tamanhos disponíveis
+            </div>
             <div className="mt-4 flex flex-wrap gap-3">
               {product.sizes?.map((size) => (
                 <InfoPill key={size}>{size}</InfoPill>

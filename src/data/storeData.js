@@ -190,14 +190,20 @@ export function getCategoryShortName(categoryId) {
 }
 
 export function normalizeProductFromDatabase(product) {
+  const imageUrl =
+    product.image_url ||
+    product.image ||
+    'https://placehold.co/1200x1200?text=Produto'
+
   return {
     id: product.id,
-    name: product.title || '',
+    name: product.name || product.title || '',
     category: product.category || '',
     price: Number(product.price || 0),
-    oldPrice: Number(product.compare_price || 0),
-    badge: product.badge || 'Produto',
-    image: product.image_url || 'https://placehold.co/1200x1200?text=Produto',
+    oldPrice: Number(product.compare_price || product.oldPrice || 0),
+    badge: product.badge || (product.featured ? 'Destaque' : 'Produto'),
+    image: imageUrl,
+    image_url: imageUrl,
     description: product.description || '',
     sizes: Array.isArray(product.sizes) ? product.sizes : [],
     featured: !!product.featured,
