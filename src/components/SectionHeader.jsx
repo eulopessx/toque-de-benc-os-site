@@ -12,7 +12,7 @@ export default function SectionHeader({
         </div>
       ) : null}
 
-      <h2 className="mt-4 text-3xl font-semibold text-[#24384d] sm:text-4xl">
+      <h2 className="mt-4 text-3xl font-semibold leading-tight text-[#24384d] sm:text-4xl">
         {title}
       </h2>
 

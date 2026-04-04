@@ -214,8 +214,8 @@ export function normalizeProductFromDatabase(product) {
 }
 
 export const storeConfig = {
-  whatsappNumber: '5500000000000',
-  whatsappDisplay: '(00) 00000-0000',
+  whatsappNumber: '5512991280549',
+  whatsappDisplay: '(12) 99128-0549',
   instagram: '@toquedebencaos',
   instagramUrl: 'https://instagram.com/toquedebencaos',
   email: 'contato@toquedebencaos.com.br',

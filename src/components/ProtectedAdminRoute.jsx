@@ -12,10 +12,10 @@ export default function ProtectedAdminRoute({ children }) {
             Painel administrativo
           </div>
           <h1 className="mt-4 text-2xl font-semibold text-[#24384d] sm:text-3xl">
-            Carregando acesso...
+            Verificando acesso...
           </h1>
           <p className="mt-3 text-sm leading-7 text-[#5d6d7d]">
-            Estamos verificando suas permissões de administrador.
+            Estamos confirmando as permissões desta conta para liberar o acesso ao painel.
           </p>
         </div>
       </main>
@@ -34,10 +34,10 @@ export default function ProtectedAdminRoute({ children }) {
             Acesso restrito
           </div>
           <h1 className="mt-4 text-2xl font-semibold text-[#24384d] sm:text-3xl">
-            Sua conta não foi reconhecida como admin.
+            Esta conta não possui permissão de administrador.
           </h1>
           <p className="mt-3 text-sm leading-7 text-[#5d6d7d]">
-            Perfil atual: {profile?.email || 'sem e-mail'}.
+            Conta identificada: {profile?.email || 'sem e-mail disponível'}.
           </p>
         </div>
       </main>

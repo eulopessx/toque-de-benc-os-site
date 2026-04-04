@@ -9,7 +9,11 @@ export default function AppLayout() {
     <div className="min-h-screen bg-[#f7f3ee] text-[#24384d]">
       <TopBar />
       <Header />
-      <Outlet />
+
+      <div className="flex min-h-[calc(100vh-220px)] flex-col">
+        <Outlet />
+      </div>
+
       <WhatsAppButton />
       <Footer />
     </div>
