@@ -516,34 +516,64 @@ export default function AdminDashboardPage() {
   }, [products, search])
 
   const groupedProducts = useMemo(() => {
-    const groups = {}
+  const groups = {}
 
-    categories.forEach((category) => {
-      const normalizedId = String(category.id || '').trim().toLowerCase()
+  function normalizeCategoryKey(value) {
+    const raw = String(value || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
 
-      groups[normalizedId] = {
-        id: normalizedId,
-        name: category.name,
+    const knownMap = {
+      'baby-look-feminina': 'baby-look-feminina',
+      'baby look feminina': 'baby-look-feminina',
+
+      'camiseta-masculina': 'camiseta-masculina',
+      'camiseta masculina': 'camiseta-masculina',
+
+      'baby-look-infantil': 'baby-look-infantil',
+      'baby look infantil': 'baby-look-infantil',
+
+      'camiseta-infantil': 'camiseta-infantil',
+      'camiseta infantil': 'camiseta-infantil',
+
+      'body-bebe': 'body-bebe',
+      'body bebe': 'body-bebe',
+      'body para bebes': 'body-bebe',
+      'body para bebes ': 'body-bebe',
+      'body bebe ': 'body-bebe',
+    }
+
+    return knownMap[raw] || raw || 'sem-categoria'
+  }
+
+  categories.forEach((category) => {
+    const normalizedId = normalizeCategoryKey(category.id)
+
+    groups[normalizedId] = {
+      id: normalizedId,
+      name: category.name,
+      products: [],
+    }
+  })
+
+  filteredProducts.forEach((product) => {
+    const categoryId = normalizeCategoryKey(product.category)
+
+    if (!groups[categoryId]) {
+      groups[categoryId] = {
+        id: categoryId,
+        name: getCategoryName(categoryId) || 'Sem categoria',
         products: [],
       }
-    })
+    }
 
-    filteredProducts.forEach((product) => {
-      const categoryId = String(product.category || 'sem-categoria').trim().toLowerCase()
+    groups[categoryId].products.push(product)
+  })
 
-      if (!groups[categoryId]) {
-        groups[categoryId] = {
-          id: categoryId,
-          name: getCategoryName(categoryId) || 'Sem categoria',
-          products: [],
-        }
-      }
-
-      groups[categoryId].products.push(product)
-    })
-
-    return Object.values(groups).filter((group) => group.products.length > 0)
-  }, [filteredProducts])
+  return Object.values(groups).filter((group) => group.products.length > 0)
+}, [filteredProducts])
 
   const filteredReviews = useMemo(() => {
     const term = reviewSearch.trim().toLowerCase()
