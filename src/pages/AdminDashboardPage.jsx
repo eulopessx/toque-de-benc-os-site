@@ -608,18 +608,14 @@ export default function AdminDashboardPage() {
   }, [selectedImageFile, previewImage])
 
   useEffect(() => {
-    if (groupedProducts.length > 0 && !activeProductCategory) {
-      setActiveProductCategory(groupedProducts[0].id)
-    }
-
-    if (
-      activeProductCategory &&
-      groupedProducts.length > 0 &&
-      !groupedProducts.some((group) => group.id === activeProductCategory)
-    ) {
-      setActiveProductCategory(groupedProducts[0].id)
-    }
-  }, [groupedProducts, activeProductCategory])
+  if (
+    activeProductCategory &&
+    groupedProducts.length > 0 &&
+    !groupedProducts.some((group) => group.id === activeProductCategory)
+  ) {
+    setActiveProductCategory(groupedProducts[0].id)
+  }
+}, [groupedProducts, activeProductCategory])
 
   async function handleSubmit(e) {
     e.preventDefault()
