@@ -14,7 +14,7 @@ function SelectableSizePill({ children, active, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full border px-4 py-2 text-xs font-semibold shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 ${
+      className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 ${
         active
           ? 'border-[#24384d] bg-[#24384d] text-white'
           : 'border-[#ddd0c1] bg-white text-[#526374] hover:border-[#cdbda8] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)]'
@@ -66,11 +66,7 @@ function parseMeasurementsTable(measurementsText = '') {
           return
         }
 
-        if (
-          label.includes('manga') ||
-          label.includes('mangas') ||
-          label.includes('sleeve')
-        ) {
+        if (label.includes('manga') || label.includes('mangas')) {
           data.sleeve = value
           return
         }
@@ -82,6 +78,53 @@ function parseMeasurementsTable(measurementsText = '') {
     })
 }
 
+function MeasurementInfoCard({ selectedMeasurement }) {
+  if (!selectedMeasurement) return null
+
+  return (
+    <div className="mt-6 rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-5 shadow-[0_8px_18px_rgba(36,56,77,0.03)]">
+      <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a835f]">
+        Medidas do tamanho {selectedMeasurement.size}
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-[#e4d8c9] bg-white px-4 py-4">
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a835f]">
+            Largura
+          </div>
+          <div className="mt-2 text-sm font-semibold text-[#24384d]">
+            {selectedMeasurement.width || '—'}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-[#e4d8c9] bg-white px-4 py-4">
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a835f]">
+            Comprimento
+          </div>
+          <div className="mt-2 text-sm font-semibold text-[#24384d]">
+            {selectedMeasurement.length || '—'}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-[#e4d8c9] bg-white px-4 py-4">
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a835f]">
+            Manga
+          </div>
+          <div className="mt-2 text-sm font-semibold text-[#24384d]">
+            {selectedMeasurement.sleeve || '—'}
+          </div>
+        </div>
+      </div>
+
+      {selectedMeasurement.other?.length ? (
+        <div className="mt-4 rounded-2xl border border-[#e4d8c9] bg-white px-4 py-4 text-sm leading-6 text-[#526374]">
+          {selectedMeasurement.other.join(' | ')}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 export default function ProductPage() {
   const { id } = useParams()
   const { addToCart } = useCart()
@@ -90,6 +133,7 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true)
   const [selectedSize, setSelectedSize] = useState('')
   const [message, setMessage] = useState('')
+  const [selectedImage, setSelectedImage] = useState('')
 
   useEffect(() => {
     loadProduct()
@@ -98,6 +142,7 @@ export default function ProductPage() {
   useEffect(() => {
     setSelectedSize('')
     setMessage('')
+    setSelectedImage('')
   }, [product?.id])
 
   async function loadProduct() {
@@ -132,12 +177,29 @@ export default function ProductPage() {
   }
 
   const imageSrc = useMemo(() => {
-    return product?.image_url || product?.image || '/placeholder-product.jpg'
+    return (
+      selectedImage ||
+      product?.image_url ||
+      product?.image ||
+      '/placeholder-product.jpg'
+    )
+  }, [product, selectedImage])
+
+  const galleryImages = useMemo(() => {
+    const baseImage =
+      product?.image_url || product?.image || '/placeholder-product.jpg'
+
+    return [baseImage]
   }, [product])
 
   const measurementsTable = useMemo(() => {
     return parseMeasurementsTable(product?.measurements || '')
   }, [product?.measurements])
+
+  const selectedMeasurement = useMemo(() => {
+    if (!selectedSize) return null
+    return measurementsTable.find((item) => item.size === selectedSize) || null
+  }, [measurementsTable, selectedSize])
 
   const hasSleeveColumn = useMemo(() => {
     return measurementsTable.some((item) => item.sleeve)
@@ -149,7 +211,7 @@ export default function ProductPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-7xl px-4 py-12 lg:px-8 lg:py-16">
+      <main className="mx-auto max-w-7xl overflow-x-hidden px-4 py-12 lg:px-8 lg:py-16">
         <div className="rounded-[2rem] border border-[#ddd0c1] bg-white/80 p-8 shadow-[0_20px_60px_rgba(36,56,77,0.05)] sm:p-10">
           <h1 className="text-3xl font-semibold text-[#24384d] sm:text-4xl">
             Carregando produto...
@@ -161,8 +223,8 @@ export default function ProductPage() {
 
   if (!product) {
     return (
-      <main className="mx-auto max-w-7xl px-4 py-12 lg:px-8 lg:py-16">
-        <div className="rounded-[2rem] border border-[#ddd0c1] bg-white/80 p-8 shadow-[0_20px_60px_rgba(36,56,77,0.05)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(36,56,77,0.08)] sm:p-10">
+      <main className="mx-auto max-w-7xl overflow-x-hidden px-4 py-12 lg:px-8 lg:py-16">
+        <div className="rounded-[2rem] border border-[#ddd0c1] bg-white/80 p-8 shadow-[0_20px_60px_rgba(36,56,77,0.05)] sm:p-10">
           <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a835f]">
             Produto não encontrado
           </div>
@@ -174,7 +236,7 @@ export default function ProductPage() {
           </p>
           <Link
             to="/catalogo"
-            className="mt-8 inline-block rounded-full bg-[#24384d] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_26px_rgba(36,56,77,0.20)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#1d3042] hover:shadow-[0_18px_34px_rgba(36,56,77,0.28)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
+            className="mt-8 inline-block rounded-full bg-[#24384d] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_26px_rgba(36,56,77,0.20)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#1d3042]"
           >
             Voltar ao catálogo
           </Link>
@@ -184,8 +246,8 @@ export default function ProductPage() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 lg:px-8 lg:py-14">
-      <div className="mb-8">
+    <main className="mx-auto max-w-7xl overflow-x-hidden px-4 py-8 lg:px-8 lg:py-14">
+      <div className="mb-6">
         <Link
           to="/catalogo"
           className="inline-flex items-center gap-2 text-sm font-semibold text-[#3b648c] transition-all duration-200 ease-out hover:translate-x-1 hover:text-[#24384d]"
@@ -195,39 +257,68 @@ export default function ProductPage() {
         </Link>
       </div>
 
-      <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="group overflow-hidden rounded-[2rem] border border-[#ddd0c1] bg-white shadow-[0_14px_40px_rgba(36,56,77,0.05)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_24px_56px_rgba(36,56,77,0.10)]">
-          <div className="relative overflow-hidden">
-            <img
-              src={imageSrc}
-              alt={product.name}
-              className="h-full min-h-[420px] w-full object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
-            />
+      <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:gap-8">
+        <div className="min-w-0">
+          <div className="overflow-hidden rounded-[2rem] border border-[#ddd0c1] bg-white shadow-[0_14px_40px_rgba(36,56,77,0.05)]">
+            <div className="relative aspect-[4/5] w-full overflow-hidden bg-white sm:aspect-[3/4]">
+              <img
+                src={imageSrc}
+                alt={product.name}
+                className="h-full w-full object-cover"
+              />
 
-            {product.badge ? (
-              <div className="absolute left-5 top-5 rounded-full bg-[#24384d] px-4 py-2 text-xs font-semibold text-white shadow-[0_10px_20px_rgba(36,56,77,0.18)] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:bg-[#1f3347]">
-                {product.badge}
-              </div>
-            ) : null}
-
-            <div className="absolute inset-0 bg-gradient-to-t from-[#24384d]/10 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              {product.badge ? (
+                <div className="absolute left-4 top-4 rounded-full bg-[#24384d] px-4 py-2 text-xs font-semibold text-white shadow-[0_10px_20px_rgba(36,56,77,0.18)]">
+                  {product.badge}
+                </div>
+              ) : null}
+            </div>
           </div>
+
+          {galleryImages.length > 0 ? (
+            <div className="mt-4 overflow-x-auto pb-1">
+              <div className="flex min-w-max gap-3">
+                {galleryImages.map((img, index) => {
+                  const active = img === imageSrc
+
+                  return (
+                    <button
+                      key={`${img}-${index}`}
+                      type="button"
+                      onClick={() => setSelectedImage(img)}
+                      className={`overflow-hidden rounded-[1rem] border transition-all duration-200 ${
+                        active
+                          ? 'border-[#24384d] shadow-[0_10px_20px_rgba(36,56,77,0.12)]'
+                          : 'border-[#ddd0c1] hover:border-[#cdbda8]'
+                      }`}
+                    >
+                      <img
+                        src={img}
+                        alt={`Miniatura ${index + 1}`}
+                        className="h-20 w-20 object-cover sm:h-24 sm:w-24"
+                      />
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ) : null}
         </div>
 
-        <div className="rounded-[2rem] border border-[#ddd0c1] bg-white/80 p-8 shadow-[0_14px_40px_rgba(36,56,77,0.05)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(36,56,77,0.08)] sm:p-10">
+        <div className="min-w-0 rounded-[2rem] border border-[#ddd0c1] bg-white/80 p-6 shadow-[0_14px_40px_rgba(36,56,77,0.05)] sm:p-8 lg:p-10">
           <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a835f]">
             Moda católica com identidade
           </div>
 
-          <h1 className="mt-4 text-3xl font-semibold text-[#24384d] sm:text-4xl">
+          <h1 className="mt-4 break-words text-3xl font-semibold text-[#24384d] sm:text-4xl">
             {product.name}
           </h1>
 
-          <p className="mt-5 text-sm leading-7 text-[#5d6d7d] sm:text-base">
+          <p className="mt-5 break-words text-sm leading-7 text-[#5d6d7d] sm:text-base">
             {product.description}
           </p>
 
-          <div className="mt-6 flex items-center gap-3">
+          <div className="mt-6 flex flex-wrap items-center gap-3">
             <span className="text-2xl font-bold text-[#24384d] sm:text-3xl">
               {formatPrice(product.price)}
             </span>
@@ -244,23 +335,26 @@ export default function ProductPage() {
           </div>
 
           {product.sizes?.length ? (
-            <div className="mt-8">
+            <div className="mt-8 min-w-0">
               <div className="text-sm font-semibold text-[#24384d]">
                 Escolha o tamanho
               </div>
-              <div className="mt-4 flex flex-wrap gap-3">
-                {product.sizes.map((size) => (
-                  <SelectableSizePill
-                    key={size}
-                    active={selectedSize === size}
-                    onClick={() => {
-                      setSelectedSize(size)
-                      setMessage('')
-                    }}
-                  >
-                    {size}
-                  </SelectableSizePill>
-                ))}
+
+              <div className="mt-4 overflow-x-auto pb-1">
+                <div className="flex min-w-max gap-3">
+                  {product.sizes.map((size) => (
+                    <SelectableSizePill
+                      key={size}
+                      active={selectedSize === size}
+                      onClick={() => {
+                        setSelectedSize(size)
+                        setMessage('')
+                      }}
+                    >
+                      {size}
+                    </SelectableSizePill>
+                  ))}
+                </div>
               </div>
 
               {selectedSize ? (
@@ -275,8 +369,10 @@ export default function ProductPage() {
             </div>
           ) : null}
 
+          <MeasurementInfoCard selectedMeasurement={selectedMeasurement} />
+
           {measurementsTable.length > 0 ? (
-            <div className="mt-8 rounded-[1.5rem] border border-[#ddd0c1] bg-white p-5 shadow-[0_8px_18px_rgba(36,56,77,0.03)]">
+            <div className="mt-8 min-w-0 rounded-[1.5rem] border border-[#ddd0c1] bg-white p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] sm:p-5">
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a835f]">
                 Guia de medidas
               </div>
@@ -285,8 +381,8 @@ export default function ProductPage() {
               </p>
 
               <div className="mt-5 overflow-hidden rounded-[1.25rem] border border-[#e4d8c9]">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full border-collapse">
+                <div className="w-full overflow-x-auto">
+                  <table className="min-w-[560px] border-collapse">
                     <thead>
                       <tr className="bg-[#fbf8f4] text-left">
                         <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#9a835f]">
@@ -315,7 +411,9 @@ export default function ProductPage() {
                       {measurementsTable.map((item, index) => (
                         <tr
                           key={`${item.size}-${index}`}
-                          className="border-t border-[#efe5d8] bg-white"
+                          className={`border-t border-[#efe5d8] ${
+                            selectedSize === item.size ? 'bg-[#f7f3ee]' : 'bg-white'
+                          }`}
                         >
                           <td className="px-4 py-4 text-sm font-semibold text-[#24384d]">
                             {item.size || '—'}
@@ -346,7 +444,7 @@ export default function ProductPage() {
           ) : null}
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d2c3b1] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]">
+            <div className="rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)]">
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a835f]">
                 Categoria
               </div>
@@ -355,7 +453,7 @@ export default function ProductPage() {
               </div>
             </div>
 
-            <div className="rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d2c3b1] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]">
+            <div className="rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)]">
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a835f]">
                 Finalização do pedido
               </div>
@@ -374,7 +472,7 @@ export default function ProductPage() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <button
               onClick={handleAddToCart}
-              className="rounded-full bg-[#24384d] px-7 py-4 text-center text-sm font-semibold text-white shadow-[0_12px_26px_rgba(36,56,77,0.20)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#1d3042] hover:shadow-[0_18px_34px_rgba(36,56,77,0.28)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
+              className="rounded-full bg-[#24384d] px-7 py-4 text-center text-sm font-semibold text-white shadow-[0_12px_26px_rgba(36,56,77,0.20)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#1d3042]"
             >
               Adicionar ao carrinho
             </button>
@@ -383,13 +481,13 @@ export default function ProductPage() {
               href={`https://wa.me/${storeConfig.whatsappNumber}`}
               target="_blank"
               rel="noreferrer"
-              className="rounded-full border border-[#b8a894] bg-white/70 px-7 py-4 text-center text-sm font-semibold text-[#24384d] shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#aa977f] hover:bg-[#efe3d4] hover:shadow-[0_14px_28px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
+              className="rounded-full border border-[#b8a894] bg-white/70 px-7 py-4 text-center text-sm font-semibold text-[#24384d] shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#aa977f] hover:bg-[#efe3d4]"
             >
               Falar com a loja
             </a>
           </div>
 
-          <div className="mt-8 rounded-[1.5rem] border border-[#ddd0c1] bg-white p-5 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d6c7b5] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]">
+          <div className="mt-8 rounded-[1.5rem] border border-[#ddd0c1] bg-white p-5 shadow-[0_8px_18px_rgba(36,56,77,0.03)]">
             <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a835f]">
               Sobre esta peça
             </div>
