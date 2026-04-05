@@ -4,6 +4,26 @@ import { logoSrc } from '../data/storeData'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 
+function CartIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3 4h1.3c.5 0 .94.33 1.08.81L6 7m0 0h11.76c.76 0 1.31.75 1.08 1.47l-1.34 4.5c-.16.54-.65.91-1.22.91H8.05c-.57 0-1.06-.37-1.22-.91L6 7Zm2 11.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm8 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"
+      />
+    </svg>
+  )
+}
+
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { cartCount } = useCart()
@@ -25,24 +45,19 @@ export default function Header() {
     }
   }
 
-  function closeMobileMenu() {
-    setMobileOpen(false)
-  }
-
   return (
     <header className="sticky top-0 z-40 border-b border-[#e4d7c9] bg-[#f7f3ee]/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 lg:px-8">
         <Link
           to="/"
-          onClick={closeMobileMenu}
-          className="group flex items-center gap-3 transition-all duration-300 hover:opacity-95 sm:gap-4"
+          className="group flex min-w-0 items-center gap-3 transition-all duration-300 hover:opacity-95 sm:gap-4"
         >
           <img
             src={logoSrc}
             alt="Logo Toque de Bençãos"
             className="h-16 w-16 rounded-full border-2 border-[#d8cbb9] bg-[#efe3d4] object-cover shadow-[0_8px_20px_rgba(36,56,77,0.10)] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_14px_28px_rgba(36,56,77,0.16)] group-active:scale-[0.97] sm:h-20 sm:w-20"
           />
-          <div className="transition-transform duration-300 group-hover:translate-x-0.5">
+          <div className="min-w-0 transition-transform duration-300 group-hover:translate-x-0.5">
             <div className="font-serif text-3xl italic leading-none text-[#3b648c] sm:text-4xl">
               Toque
             </div>
@@ -145,15 +160,28 @@ export default function Header() {
           </Link>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setMobileOpen((prev) => !prev)}
-          aria-expanded={mobileOpen}
-          aria-label="Abrir menu"
-          className="rounded-full border border-[#d8cbb9] bg-white/80 px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cab8a0] hover:bg-white hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97] lg:hidden"
-        >
-          {mobileOpen ? 'Fechar' : 'Menu'}
-        </button>
+        <div className="flex items-center gap-2 lg:hidden">
+          <Link
+            to="/carrinho"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full border border-[#d8cbb9] bg-white/85 text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cab8a0] hover:bg-white hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
+            aria-label="Abrir carrinho"
+          >
+            <CartIcon />
+            {cartCount > 0 ? (
+              <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#c99d4d] px-1 text-[10px] font-bold text-white shadow-[0_8px_18px_rgba(201,157,77,0.25)]">
+                {cartCount}
+              </span>
+            ) : null}
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setMobileOpen((prev) => !prev)}
+            className="rounded-full border border-[#d8cbb9] bg-white/80 px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cab8a0] hover:bg-white hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#24384d]/25 focus-visible:ring-offset-2 active:scale-[0.97]"
+          >
+            Menu
+          </button>
+        </div>
       </div>
 
       <div
@@ -171,7 +199,7 @@ export default function Header() {
               {user && isAdmin ? (
                 <Link
                   to="/admin"
-                  onClick={closeMobileMenu}
+                  onClick={() => setMobileOpen(false)}
                   className="rounded-2xl border border-[#ead4ad] bg-[#fff8ef] px-4 py-3 text-sm font-semibold text-[#9a6b1f] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_10px_22px_rgba(36,56,77,0.06)]"
                 >
                   Painel admin
@@ -182,7 +210,7 @@ export default function Header() {
                 <>
                   <Link
                     to="/acesso"
-                    onClick={closeMobileMenu}
+                    onClick={() => setMobileOpen(false)}
                     className="rounded-2xl border border-[#e6dacd] bg-white px-4 py-3 text-sm font-semibold text-[#24384d] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#d4c2ab] hover:shadow-[0_10px_22px_rgba(36,56,77,0.06)]"
                   >
                     Minha conta
@@ -199,7 +227,7 @@ export default function Header() {
               ) : (
                 <Link
                   to="/acesso"
-                  onClick={closeMobileMenu}
+                  onClick={() => setMobileOpen(false)}
                   className="rounded-2xl border border-[#e6dacd] bg-white px-4 py-3 text-sm font-semibold text-[#24384d] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#d4c2ab] hover:shadow-[0_10px_22px_rgba(36,56,77,0.06)]"
                 >
                   Entrar
@@ -212,7 +240,7 @@ export default function Header() {
             <NavLink
               key={item.to}
               to={item.to}
-              onClick={closeMobileMenu}
+              onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
                 `rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-200 ease-out ${
                   isActive
@@ -227,18 +255,10 @@ export default function Header() {
 
           <Link
             to="/catalogo"
-            onClick={closeMobileMenu}
-            className="rounded-2xl border border-[#e6dacd] bg-white px-4 py-3 text-center text-sm font-semibold text-[#24384d] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#d4c2ab] hover:shadow-[0_10px_22px_rgba(36,56,77,0.06)]"
-          >
-            Explorar
-          </Link>
-
-          <Link
-            to="/carrinho"
-            onClick={closeMobileMenu}
+            onClick={() => setMobileOpen(false)}
             className="rounded-2xl bg-[#24384d] px-4 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_24px_rgba(36,56,77,0.16)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#1e3143] hover:shadow-[0_18px_32px_rgba(36,56,77,0.22)]"
           >
-            Carrinho {cartCount > 0 ? `(${cartCount})` : ''}
+            Explorar catálogo
           </Link>
         </div>
       </div>
