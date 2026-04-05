@@ -8,6 +8,7 @@ import {
   storeConfig,
 } from '../data/storeData'
 import { useCart } from '../context/CartContext'
+import ProductReviewsSection from '../components/ProductReviewsSection'
 
 function SelectableSizePill({ children, active, onClick }) {
   return (
@@ -552,6 +553,12 @@ export default function ProductPage() {
             </div>
           </div>
         </section>
+
+        <ProductReviewsSection
+          productId={product.id}
+          productName={product.name}
+          availableSizes={product.sizes || []}
+        />
       </main>
 
       {zoomOpen ? (
