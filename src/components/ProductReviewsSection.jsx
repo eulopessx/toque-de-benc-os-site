@@ -122,7 +122,7 @@ export default function ProductReviewsSection({ productId, productName, availabl
       comment: form.comment.trim(),
       size: form.size || null,
       verified_purchase: false,
-      approved: false,
+approved: true,
     }
 
     const { error } = await supabase.from('product_reviews').insert(payload)

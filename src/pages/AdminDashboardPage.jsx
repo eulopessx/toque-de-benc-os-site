@@ -48,12 +48,26 @@ function StatusBadge({ children, variant = 'default' }) {
     highlight: 'bg-[#24384d] text-white',
     muted: 'bg-[#efe3d4] text-[#24384d]',
     success: 'bg-[#edf6ef] text-[#2d6a3f] border border-[#cfe3d3]',
+    warning: 'bg-[#fff8ef] text-[#9a6b1f] border border-[#ead4ad]',
+    danger: 'bg-[#fff4f4] text-[#a14a4a] border border-[#f0d3d3]',
   }
 
   return (
     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${styles[variant]}`}>
       {children}
     </span>
+  )
+}
+
+function Stars({ value }) {
+  return (
+    <div className="flex items-center gap-1 text-sm">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <span key={index} className={index < Number(value) ? 'text-[#c99d4d]' : 'text-[#d7dbe0]'}>
+          ★
+        </span>
+      ))}
+    </div>
   )
 }
 
@@ -83,20 +97,11 @@ function buildMeasurementsText(selectedSizes, measurementsMap) {
       const current = measurementsMap[size] || { width: '', length: '', sleeve: '' }
       const parts = []
 
-      if (current.width.trim()) {
-        parts.push(`Largura: ${current.width.trim()}`)
-      }
-
-      if (current.length.trim()) {
-        parts.push(`Comprimento: ${current.length.trim()}`)
-      }
-
-      if (current.sleeve.trim()) {
-        parts.push(`Manga: ${current.sleeve.trim()}`)
-      }
+      if (current.width.trim()) parts.push(`Largura: ${current.width.trim()}`)
+      if (current.length.trim()) parts.push(`Comprimento: ${current.length.trim()}`)
+      if (current.sleeve.trim()) parts.push(`Manga: ${current.sleeve.trim()}`)
 
       if (parts.length === 0) return ''
-
       return `${size} — ${parts.join(' | ')}`
     })
     .filter(Boolean)
@@ -127,13 +132,9 @@ function parseMeasurementsToMap(text = '') {
 
           if (!label || !value) return
 
-          if (label.includes('largura')) {
-            map[size].width = value
-          } else if (label.includes('comprimento')) {
-            map[size].length = value
-          } else if (label.includes('manga')) {
-            map[size].sleeve = value
-          }
+          if (label.includes('largura')) map[size].width = value
+          else if (label.includes('comprimento')) map[size].length = value
+          else if (label.includes('manga')) map[size].sleeve = value
         })
     })
 
@@ -167,16 +168,13 @@ function getSavedMeasurementTemplates() {
 
 function saveMeasurementTemplate(category, measurementsMap) {
   if (!category) return
-
   const templates = getSavedMeasurementTemplates()
   templates[category] = measurementsMap
   localStorage.setItem(MEASUREMENTS_TEMPLATE_STORAGE_KEY, JSON.stringify(templates))
 }
 
 function hasAnyMeasurementFilled(measurementsMap) {
-  return Object.values(measurementsMap || {}).some((item) => {
-    return item.width || item.length || item.sleeve
-  })
+  return Object.values(measurementsMap || {}).some((item) => item.width || item.length || item.sleeve)
 }
 
 function hasMeasurementDataForSize(entry) {
@@ -185,6 +183,7 @@ function hasMeasurementDataForSize(entry) {
 
 export default function AdminDashboardPage() {
   const [products, setProducts] = useState([])
+  const [reviews, setReviews] = useState([])
   const [form, setForm] = useState(() => {
     try {
       const savedDraft = localStorage.getItem(ADMIN_PRODUCT_DRAFT_KEY)
@@ -202,16 +201,21 @@ export default function AdminDashboardPage() {
       return { ...emptyForm, measurementsMap: createEmptyMeasurementsMap() }
     }
   })
+
   const [editingId, setEditingId] = useState(null)
   const [message, setMessage] = useState('')
+  const [reviewsMessage, setReviewsMessage] = useState('')
   const [loading, setLoading] = useState(true)
+  const [loadingReviews, setLoadingReviews] = useState(true)
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
+  const [reviewSearch, setReviewSearch] = useState('')
   const [selectedImageFile, setSelectedImageFile] = useState(null)
   const [uploadingImage, setUploadingImage] = useState(false)
 
   useEffect(() => {
     loadProducts()
+    loadReviews()
   }, [])
 
   useEffect(() => {
@@ -235,6 +239,25 @@ export default function AdminDashboardPage() {
 
     setProducts(data || [])
     setLoading(false)
+  }
+
+  async function loadReviews() {
+    setLoadingReviews(true)
+    setReviewsMessage('')
+
+    const { data, error } = await supabase
+      .from('product_reviews')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      setReviewsMessage('Não foi possível carregar as avaliações.')
+      setLoadingReviews(false)
+      return
+    }
+
+    setReviews(data || [])
+    setLoadingReviews(false)
   }
 
   function handleChange(e) {
@@ -386,11 +409,23 @@ export default function AdminDashboardPage() {
     })
   }, [products, search])
 
-  const previewImage = useMemo(() => {
-    if (selectedImageFile) {
-      return URL.createObjectURL(selectedImageFile)
-    }
+  const filteredReviews = useMemo(() => {
+    const term = reviewSearch.trim().toLowerCase()
 
+    if (!term) return reviews
+
+    return reviews.filter((review) => {
+      return (
+        String(review.user_name || '').toLowerCase().includes(term) ||
+        String(review.user_email || '').toLowerCase().includes(term) ||
+        String(review.comment || '').toLowerCase().includes(term) ||
+        String(review.size || '').toLowerCase().includes(term)
+      )
+    })
+  }, [reviews, reviewSearch])
+
+  const previewImage = useMemo(() => {
+    if (selectedImageFile) return URL.createObjectURL(selectedImageFile)
     return form.image_url?.trim() || ''
   }, [selectedImageFile, form.image_url])
 
@@ -547,12 +582,64 @@ export default function AdminDashboardPage() {
       return
     }
 
-    if (editingId === id) {
-      handleCancelEdit()
-    }
+    if (editingId === id) handleCancelEdit()
 
     setMessage('Produto removido com sucesso.')
     loadProducts()
+  }
+
+  async function handleApproveReview(reviewId) {
+    setReviewsMessage('')
+
+    const { error } = await supabase
+      .from('product_reviews')
+      .update({ approved: true })
+      .eq('id', reviewId)
+
+    if (error) {
+      setReviewsMessage(error.message || 'Não foi possível aprovar a avaliação.')
+      return
+    }
+
+    setReviewsMessage('Avaliação aprovada com sucesso.')
+    loadReviews()
+  }
+
+  async function handleHideReview(reviewId) {
+    setReviewsMessage('')
+
+    const { error } = await supabase
+      .from('product_reviews')
+      .update({ approved: false })
+      .eq('id', reviewId)
+
+    if (error) {
+      setReviewsMessage(error.message || 'Não foi possível ocultar a avaliação.')
+      return
+    }
+
+    setReviewsMessage('Avaliação ocultada com sucesso.')
+    loadReviews()
+  }
+
+  async function handleDeleteReview(reviewId) {
+    setReviewsMessage('')
+
+    const confirmed = window.confirm('Tem certeza que deseja excluir esta avaliação?')
+    if (!confirmed) return
+
+    const { error } = await supabase
+      .from('product_reviews')
+      .delete()
+      .eq('id', reviewId)
+
+    if (error) {
+      setReviewsMessage(error.message || 'Não foi possível excluir a avaliação.')
+      return
+    }
+
+    setReviewsMessage('Avaliação excluída com sucesso.')
+    loadReviews()
   }
 
   function handleCancelEdit() {
@@ -702,9 +789,7 @@ export default function AdminDashboardPage() {
                     Pré-visualização da imagem
                   </div>
                   {form.price ? (
-                    <StatusBadge variant="muted">
-                      {formatPrice(form.price)}
-                    </StatusBadge>
+                    <StatusBadge variant="muted">{formatPrice(form.price)}</StatusBadge>
                   ) : null}
                 </div>
 
@@ -796,27 +881,21 @@ export default function AdminDashboardPage() {
                           <MeasurementInput
                             label="Largura"
                             value={current.width}
-                            onChange={(e) =>
-                              handleMeasurementChange(size, 'width', e.target.value)
-                            }
+                            onChange={(e) => handleMeasurementChange(size, 'width', e.target.value)}
                             placeholder="Ex.: 46 cm"
                           />
 
                           <MeasurementInput
                             label="Comprimento"
                             value={current.length}
-                            onChange={(e) =>
-                              handleMeasurementChange(size, 'length', e.target.value)
-                            }
+                            onChange={(e) => handleMeasurementChange(size, 'length', e.target.value)}
                             placeholder="Ex.: 62 cm"
                           />
 
                           <MeasurementInput
                             label="Manga"
                             value={current.sleeve}
-                            onChange={(e) =>
-                              handleMeasurementChange(size, 'sleeve', e.target.value)
-                            }
+                            onChange={(e) => handleMeasurementChange(size, 'sleeve', e.target.value)}
                             placeholder="Ex.: 18 cm"
                           />
                         </div>
@@ -938,11 +1017,7 @@ export default function AdminDashboardPage() {
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex gap-4">
                       <img
-                        src={
-                          product.image_url ||
-                          product.image ||
-                          'https://placehold.co/240x240?text=Produto'
-                        }
+                        src={product.image_url || product.image || 'https://placehold.co/240x240?text=Produto'}
                         alt={product.title || product.name}
                         className="h-24 w-24 rounded-[1rem] object-cover"
                       />
@@ -957,20 +1032,9 @@ export default function AdminDashboardPage() {
                         </p>
 
                         <div className="mt-3 flex flex-wrap gap-2">
-                          {product.category ? (
-                            <StatusBadge>{product.category}</StatusBadge>
-                          ) : null}
-
-                          {product.featured ? (
-                            <StatusBadge variant="highlight">Destaque</StatusBadge>
-                          ) : null}
-
-                          {product.active ? (
-                            <StatusBadge variant="success">Ativo</StatusBadge>
-                          ) : (
-                            <StatusBadge variant="muted">Inativo</StatusBadge>
-                          )}
-
+                          {product.category ? <StatusBadge>{product.category}</StatusBadge> : null}
+                          {product.featured ? <StatusBadge variant="highlight">Destaque</StatusBadge> : null}
+                          {product.active ? <StatusBadge variant="success">Ativo</StatusBadge> : <StatusBadge variant="muted">Inativo</StatusBadge>}
                           <StatusBadge>Estoque: {product.stock ?? 0}</StatusBadge>
                         </div>
                       </div>
@@ -1000,6 +1064,120 @@ export default function AdminDashboardPage() {
           )}
         </section>
       </div>
+
+      <section className="mt-10 rounded-[2rem] border border-[#ddd0c1] bg-white p-8 shadow-[0_14px_40px_rgba(36,56,77,0.05)]">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a835f]">
+              Moderação de avaliações
+            </div>
+            <h2 className="mt-3 text-2xl font-semibold text-[#24384d] sm:text-3xl">
+              Gerencie os comentários dos clientes
+            </h2>
+            <p className="mt-2 text-sm leading-7 text-[#5d6d7d]">
+              Aprove, oculte ou exclua avaliações para manter a vitrine da loja elegante, confiável e bem organizada.
+            </p>
+          </div>
+
+          <input
+            value={reviewSearch}
+            onChange={(e) => setReviewSearch(e.target.value)}
+            placeholder="Buscar avaliação"
+            className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-3 text-sm text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)] sm:max-w-[260px]"
+          />
+        </div>
+
+        {reviewsMessage ? (
+          <div className="mt-5 rounded-2xl border border-[#e4d8c9] bg-[#fcfaf7] px-4 py-3 text-sm text-[#5d6d7d]">
+            {reviewsMessage}
+          </div>
+        ) : null}
+
+        {loadingReviews ? (
+          <div className="mt-6 text-sm text-[#5d6d7d]">Carregando avaliações...</div>
+        ) : filteredReviews.length === 0 ? (
+          <div className="mt-6 rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-6 text-sm leading-7 text-[#5d6d7d]">
+            Nenhuma avaliação encontrada.
+          </div>
+        ) : (
+          <div className="mt-6 space-y-4">
+            {filteredReviews.map((review) => (
+              <article
+                key={review.id}
+                className="rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-5 shadow-[0_8px_18px_rgba(36,56,77,0.03)]"
+              >
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="text-base font-semibold text-[#24384d]">
+                        {review.user_name || 'Cliente'}
+                      </div>
+
+                      {review.approved ? (
+                        <StatusBadge variant="success">Aprovada</StatusBadge>
+                      ) : (
+                        <StatusBadge variant="warning">Oculta</StatusBadge>
+                      )}
+
+                      {review.verified_purchase ? (
+                        <StatusBadge variant="highlight">Compra verificada</StatusBadge>
+                      ) : null}
+
+                      {review.size ? (
+                        <StatusBadge>{`Tamanho ${review.size}`}</StatusBadge>
+                      ) : null}
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <Stars value={review.rating} />
+                      <div className="text-xs font-medium text-[#8a93a0]">
+                        {new Date(review.created_at).toLocaleDateString('pt-BR')}
+                      </div>
+                      {review.user_email ? (
+                        <div className="text-xs text-[#8a93a0]">
+                          {review.user_email}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <p className="mt-4 max-w-4xl text-sm leading-7 text-[#526374]">
+                      {review.comment}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {!review.approved ? (
+                      <button
+                        type="button"
+                        onClick={() => handleApproveReview(review.id)}
+                        className="rounded-full bg-[#24384d] px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1d3042]"
+                      >
+                        Aprovar
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleHideReview(review.id)}
+                        className="rounded-full border border-[#d8cbb9] bg-white px-4 py-2 text-sm font-semibold text-[#24384d] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#cbb9a3] hover:bg-[#fcfaf7]"
+                      >
+                        Ocultar
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteReview(review.id)}
+                      className="rounded-full bg-[#efe3d4] px-4 py-2 text-sm font-semibold text-[#24384d] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#e5d4c0]"
+                    >
+                      Excluir
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
     </main>
   )
 }
