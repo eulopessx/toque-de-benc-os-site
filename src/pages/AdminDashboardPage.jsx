@@ -54,6 +54,15 @@ function createSlug(text) {
     .replace(/^-|-$/g, '')
 }
 
+function isValidHttpUrl(value) {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 export default function AdminDashboardPage() {
   const [products, setProducts] = useState([])
   const [form, setForm] = useState(() => {
@@ -124,6 +133,7 @@ export default function AdminDashboardPage() {
   function handleFileChange(e) {
     const file = e.target.files?.[0] || null
     setSelectedImageFile(file)
+    setMessage('')
   }
 
   async function uploadImageAndGetUrl(file) {
@@ -145,15 +155,22 @@ export default function AdminDashboardPage() {
 
     if (uploadError) {
       setUploadingImage(false)
-      throw uploadError
+      throw new Error(`Erro no upload da imagem: ${uploadError.message}`)
     }
 
     const { data } = supabase.storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(filePath)
 
+    const publicUrl = data?.publicUrl || ''
+
+    if (!publicUrl) {
+      setUploadingImage(false)
+      throw new Error('A imagem foi enviada, mas a URL pública não foi gerada.')
+    }
+
     setUploadingImage(false)
-    return data.publicUrl
+    return publicUrl
   }
 
   const filteredProducts = useMemo(() => {
@@ -193,7 +210,37 @@ export default function AdminDashboardPage() {
 
     try {
       const cleanTitle = form.title.trim()
-      const finalImageUrl = await uploadImageAndGetUrl(selectedImageFile)
+      const manualUrl = form.image_url.trim()
+      const hasFile = !!selectedImageFile
+
+      if (!cleanTitle || !form.category.trim() || !form.description.trim()) {
+        setMessage('Preencha nome, categoria e descrição do produto.')
+        setSaving(false)
+        return
+      }
+
+      if (!hasFile && !manualUrl) {
+        setMessage('Envie uma imagem do computador ou informe uma URL válida.')
+        setSaving(false)
+        return
+      }
+
+      if (!hasFile && manualUrl && !isValidHttpUrl(manualUrl)) {
+        setMessage('A URL manual da imagem precisa começar com http:// ou https://')
+        setSaving(false)
+        return
+      }
+
+      const finalImageUrl = hasFile
+        ? await uploadImageAndGetUrl(selectedImageFile)
+        : manualUrl
+
+      if (!finalImageUrl) {
+        setMessage('Não foi possível obter a imagem do produto.')
+        setSaving(false)
+        return
+      }
+
       const finalSlug = createSlug(cleanTitle)
 
       const payload = {
@@ -212,12 +259,6 @@ export default function AdminDashboardPage() {
         active: form.active,
         badge: form.badge.trim() || null,
         sizes: form.sizes,
-      }
-
-      if (!payload.title || !payload.category || !payload.image_url || !payload.description) {
-        setMessage('Preencha nome, categoria, descrição e imagem do produto.')
-        setSaving(false)
-        return
       }
 
       if (editingId) {
@@ -327,7 +368,7 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-        <section className="rounded-[2rem] border border-[#ddd0c1] bg-white p-8 shadow-[0_14px_40px_rgba(36,56,77,0.05)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(36,56,77,0.08)]">
+        <section className="rounded-[2rem] border border-[#ddd0c1] bg-white p-8 shadow-[0_14px_40px_rgba(36,56,77,0.05)]">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-2xl font-semibold text-[#24384d]">
@@ -349,7 +390,7 @@ export default function AdminDashboardPage() {
                 value={form.title}
                 onChange={handleChange}
                 placeholder="Ex.: Baby Look Nossa Senhora das Graças"
-                className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+                className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
               />
             </div>
 
@@ -360,7 +401,7 @@ export default function AdminDashboardPage() {
                   name="category"
                   value={form.category}
                   onChange={handleChange}
-                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
                 >
                   <option value="">Selecione uma categoria</option>
                   {categories.map((category) => (
@@ -378,7 +419,7 @@ export default function AdminDashboardPage() {
                   value={form.badge}
                   onChange={handleChange}
                   placeholder="Ex.: Novo, Mais vendido"
-                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
                 />
               </div>
             </div>
@@ -391,7 +432,7 @@ export default function AdminDashboardPage() {
                   value={form.price}
                   onChange={handleChange}
                   placeholder="129.90"
-                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
                 />
               </div>
 
@@ -402,7 +443,7 @@ export default function AdminDashboardPage() {
                   value={form.compare_price}
                   onChange={handleChange}
                   placeholder="159.90"
-                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
                 />
               </div>
 
@@ -413,7 +454,7 @@ export default function AdminDashboardPage() {
                   value={form.stock}
                   onChange={handleChange}
                   placeholder="10"
-                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
                 />
               </div>
             </div>
@@ -440,7 +481,7 @@ export default function AdminDashboardPage() {
                 value={form.image_url}
                 onChange={handleChange}
                 placeholder="https://..."
-                className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+                className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
               />
             </div>
 
@@ -472,7 +513,7 @@ export default function AdminDashboardPage() {
                 value={form.description}
                 onChange={handleChange}
                 placeholder="Descreva a peça com um texto elegante, acolhedor e alinhado à proposta católica da loja."
-                className="min-h-[120px] w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+                className="min-h-[120px] w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
               />
             </div>
 
@@ -487,10 +528,10 @@ export default function AdminDashboardPage() {
                       key={size}
                       type="button"
                       onClick={() => handleSizeToggle(size)}
-                      className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-200 ease-out ${
+                      className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${
                         active
-                          ? 'border-[#24384d] bg-[#24384d] text-white shadow-[0_12px_24px_rgba(36,56,77,0.14)]'
-                          : 'border-[#ddd0c1] bg-[#fbf8f4] text-[#24384d] hover:-translate-y-0.5 hover:border-[#ccbda9] hover:bg-white'
+                          ? 'border-[#24384d] bg-[#24384d] text-white'
+                          : 'border-[#ddd0c1] bg-[#fbf8f4] text-[#24384d]'
                       }`}
                     >
                       {active ? `✓ ${size}` : size}
@@ -501,7 +542,7 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="flex items-center gap-3 rounded-2xl border border-[#ddd0c1] bg-[#fbf8f4] px-4 py-4 text-sm font-semibold text-[#24384d] shadow-[0_8px_18px_rgba(36,56,77,0.03)]">
+              <label className="flex items-center gap-3 rounded-2xl border border-[#ddd0c1] bg-[#fbf8f4] px-4 py-4 text-sm font-semibold text-[#24384d]">
                 <input
                   type="checkbox"
                   name="featured"
@@ -511,7 +552,7 @@ export default function AdminDashboardPage() {
                 Produto em destaque
               </label>
 
-              <label className="flex items-center gap-3 rounded-2xl border border-[#ddd0c1] bg-[#fbf8f4] px-4 py-4 text-sm font-semibold text-[#24384d] shadow-[0_8px_18px_rgba(36,56,77,0.03)]">
+              <label className="flex items-center gap-3 rounded-2xl border border-[#ddd0c1] bg-[#fbf8f4] px-4 py-4 text-sm font-semibold text-[#24384d]">
                 <input
                   type="checkbox"
                   name="active"
@@ -535,7 +576,7 @@ export default function AdminDashboardPage() {
               <button
                 type="submit"
                 disabled={saving || uploadingImage}
-                className="flex-1 rounded-2xl bg-[#24384d] px-5 py-4 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(36,56,77,0.14)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#1d3042] hover:shadow-[0_18px_34px_rgba(36,56,77,0.24)] disabled:cursor-not-allowed disabled:opacity-70"
+                className="flex-1 rounded-2xl bg-[#24384d] px-5 py-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {uploadingImage
                   ? 'Enviando imagem...'
@@ -550,7 +591,7 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="flex-1 rounded-2xl border border-[#d8cbb9] bg-white px-5 py-4 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cbb9a3] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)]"
+                  className="flex-1 rounded-2xl border border-[#d8cbb9] bg-white px-5 py-4 text-sm font-semibold text-[#24384d]"
                 >
                   Cancelar edição
                 </button>
@@ -565,7 +606,7 @@ export default function AdminDashboardPage() {
           ) : null}
         </section>
 
-        <section className="rounded-[2rem] border border-[#ddd0c1] bg-white p-8 shadow-[0_14px_40px_rgba(36,56,77,0.05)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_22px_50px_rgba(36,56,77,0.08)]">
+        <section className="rounded-[2rem] border border-[#ddd0c1] bg-white p-8 shadow-[0_14px_40px_rgba(36,56,77,0.05)]">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-2xl font-semibold text-[#24384d]">
@@ -580,7 +621,7 @@ export default function AdminDashboardPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar produto"
-              className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-3 text-sm text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)] sm:max-w-[240px]"
+              className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-3 text-sm text-[#24384d] outline-none sm:max-w-[240px]"
             />
           </div>
 
@@ -595,7 +636,7 @@ export default function AdminDashboardPage() {
               {filteredProducts.map((product) => (
                 <div
                   key={product.id}
-                  className="rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4 shadow-[0_8px_18px_rgba(36,56,77,0.03)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d5c6b4] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]"
+                  className="rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4"
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex gap-4">
@@ -638,7 +679,7 @@ export default function AdminDashboardPage() {
                       <button
                         type="button"
                         onClick={() => startEdit(product)}
-                        className="rounded-full border border-[#d8cbb9] bg-white px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cbb9a3] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)]"
+                        className="rounded-full border border-[#d8cbb9] bg-white px-4 py-2 text-sm font-semibold text-[#24384d]"
                       >
                         Editar
                       </button>
@@ -646,7 +687,7 @@ export default function AdminDashboardPage() {
                       <button
                         type="button"
                         onClick={() => handleDelete(product.id)}
-                        className="rounded-full bg-[#efe3d4] px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#e5d4c0] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)]"
+                        className="rounded-full bg-[#efe3d4] px-4 py-2 text-sm font-semibold text-[#24384d]"
                       >
                         Remover
                       </button>
