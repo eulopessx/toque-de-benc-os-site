@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { categories, formatPrice, sortSizes } from '../data/storeData'
+import { categories, formatPrice, sortSizes, getCategoryName } from '../data/storeData'
 
 const ADMIN_PRODUCT_DRAFT_KEY = 'toque-admin-product-draft'
 const MEASUREMENTS_TEMPLATE_STORAGE_KEY = 'toque-admin-measurement-templates'
@@ -49,7 +49,6 @@ function StatusBadge({ children, variant = 'default' }) {
     muted: 'bg-[#efe3d4] text-[#24384d]',
     success: 'bg-[#edf6ef] text-[#2d6a3f] border border-[#cfe3d3]',
     warning: 'bg-[#fff8ef] text-[#9a6b1f] border border-[#ead4ad]',
-    danger: 'bg-[#fff4f4] text-[#a14a4a] border border-[#f0d3d3]',
   }
 
   return (
@@ -181,9 +180,105 @@ function hasMeasurementDataForSize(entry) {
   return !!(entry?.width || entry?.length || entry?.sleeve)
 }
 
+function ProductCategoryAccordion({
+  categoryId,
+  categoryName,
+  products,
+  isOpen,
+  onToggle,
+  onEdit,
+  onDelete,
+}) {
+  return (
+    <div className="rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] shadow-[0_8px_18px_rgba(36,56,77,0.03)]">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left transition-all duration-200 hover:bg-[#f7f2eb]"
+      >
+        <div>
+          <div className="text-lg font-semibold text-[#24384d]">{categoryName}</div>
+          <div className="mt-1 text-sm text-[#5d6d7d]">
+            {products.length} {products.length === 1 ? 'produto' : 'produtos'}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <StatusBadge>{products.length}</StatusBadge>
+          <span className="text-xl font-semibold text-[#24384d]">{isOpen ? '−' : '+'}</span>
+        </div>
+      </button>
+
+      {isOpen ? (
+        <div className="space-y-4 border-t border-[#e7dccf] px-5 py-5">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              className="rounded-[1.5rem] border border-[#ddd0c1] bg-white p-4 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#d5c6b4] hover:shadow-[0_14px_28px_rgba(36,56,77,0.07)]"
+            >
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex gap-4">
+                  <img
+                    src={product.image_url || product.image || 'https://placehold.co/240x240?text=Produto'}
+                    alt={product.title || product.name}
+                    className="h-24 w-24 rounded-[1rem] object-cover"
+                  />
+
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-semibold text-[#24384d]">
+                      {product.title || product.name}
+                    </h3>
+
+                    <p className="mt-1 text-sm text-[#5d6d7d]">
+                      {formatPrice(product.price)}
+                    </p>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {product.featured ? (
+                        <StatusBadge variant="highlight">Destaque</StatusBadge>
+                      ) : null}
+
+                      {product.active ? (
+                        <StatusBadge variant="success">Ativo</StatusBadge>
+                      ) : (
+                        <StatusBadge variant="muted">Inativo</StatusBadge>
+                      )}
+
+                      <StatusBadge>Estoque: {product.stock ?? 0}</StatusBadge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex shrink-0 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onEdit(product)}
+                    className="rounded-full border border-[#d8cbb9] bg-white px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cbb9a3] hover:bg-[#fcfaf7]"
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onDelete(product.id)}
+                    className="rounded-full bg-[#efe3d4] px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#e5d4c0]"
+                  >
+                    Remover
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 export default function AdminDashboardPage() {
   const [products, setProducts] = useState([])
   const [reviews, setReviews] = useState([])
+  const [activeProductCategory, setActiveProductCategory] = useState('all')
   const [form, setForm] = useState(() => {
     try {
       const savedDraft = localStorage.getItem(ADMIN_PRODUCT_DRAFT_KEY)
@@ -408,6 +503,34 @@ export default function AdminDashboardPage() {
       )
     })
   }, [products, search])
+
+  const groupedProducts = useMemo(() => {
+    const groups = {}
+
+    categories.forEach((category) => {
+      groups[category.id] = {
+        id: category.id,
+        name: category.name,
+        products: [],
+      }
+    })
+
+    filteredProducts.forEach((product) => {
+      const categoryId = product.category || 'sem-categoria'
+
+      if (!groups[categoryId]) {
+        groups[categoryId] = {
+          id: categoryId,
+          name: getCategoryName(categoryId) || 'Sem categoria',
+          products: [],
+        }
+      }
+
+      groups[categoryId].products.push(product)
+    })
+
+    return Object.values(groups).filter((group) => group.products.length > 0)
+  }, [filteredProducts])
 
   const filteredReviews = useMemo(() => {
     const term = reviewSearch.trim().toLowerCase()
@@ -989,7 +1112,7 @@ export default function AdminDashboardPage() {
                 Produtos cadastrados
               </h2>
               <p className="mt-2 text-sm text-[#5d6d7d]">
-                Visualize e administre os produtos da loja.
+                Agora os produtos ficam organizados por categoria para facilitar sua administração.
               </p>
             </div>
 
@@ -1003,62 +1126,25 @@ export default function AdminDashboardPage() {
 
           {loading ? (
             <p className="mt-6 text-sm text-[#5d6d7d]">Carregando produtos...</p>
-          ) : filteredProducts.length === 0 ? (
+          ) : groupedProducts.length === 0 ? (
             <p className="mt-6 text-sm text-[#5d6d7d]">
               Nenhum produto encontrado.
             </p>
           ) : (
             <div className="mt-6 space-y-4">
-              {filteredProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-4"
-                >
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex gap-4">
-                      <img
-                        src={product.image_url || product.image || 'https://placehold.co/240x240?text=Produto'}
-                        alt={product.title || product.name}
-                        className="h-24 w-24 rounded-[1rem] object-cover"
-                      />
-
-                      <div className="min-w-0">
-                        <h3 className="text-lg font-semibold text-[#24384d]">
-                          {product.title || product.name}
-                        </h3>
-
-                        <p className="mt-1 text-sm text-[#5d6d7d]">
-                          {formatPrice(product.price)}
-                        </p>
-
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {product.category ? <StatusBadge>{product.category}</StatusBadge> : null}
-                          {product.featured ? <StatusBadge variant="highlight">Destaque</StatusBadge> : null}
-                          {product.active ? <StatusBadge variant="success">Ativo</StatusBadge> : <StatusBadge variant="muted">Inativo</StatusBadge>}
-                          <StatusBadge>Estoque: {product.stock ?? 0}</StatusBadge>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex shrink-0 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => startEdit(product)}
-                        className="rounded-full border border-[#d8cbb9] bg-white px-4 py-2 text-sm font-semibold text-[#24384d]"
-                      >
-                        Editar
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(product.id)}
-                        className="rounded-full bg-[#efe3d4] px-4 py-2 text-sm font-semibold text-[#24384d]"
-                      >
-                        Remover
-                      </button>
-                    </div>
-                  </div>
-                </div>
+              {groupedProducts.map((group) => (
+                <ProductCategoryAccordion
+                  key={group.id}
+                  categoryId={group.id}
+                  categoryName={group.name}
+                  products={group.products}
+                  isOpen={activeProductCategory === group.id}
+                  onToggle={() =>
+                    setActiveProductCategory((prev) => (prev === group.id ? 'all' : group.id))
+                  }
+                  onEdit={startEdit}
+                  onDelete={handleDelete}
+                />
               ))}
             </div>
           )}
