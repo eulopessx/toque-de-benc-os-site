@@ -6,7 +6,7 @@ export const categories = [
     name: 'Baby Look Feminina',
     short: 'Feminina',
     description:
-      'Modelos delicados, elegantes e confortáveis para o dia a dia, igreja e momentos especiais.',
+      'Peças femininas com delicadeza, bom gosto e uma presença suave para o dia a dia, momentos especiais e vivências de fé.',
     image:
       'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=80',
   },
@@ -15,7 +15,7 @@ export const categories = [
     name: 'Camiseta Masculina',
     short: 'Masculina',
     description:
-      'Camisetas com caimento moderno, visual versátil e estampas com identidade e propósito.',
+      'Camisetas com visual versátil, acabamento confortável e identidade cristã para homens que valorizam simplicidade e presença.',
     image:
       'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
   },
@@ -24,7 +24,7 @@ export const categories = [
     name: 'Baby Look Infantil',
     short: 'Infantil Feminino',
     description:
-      'Peças infantis encantadoras, leves e práticas para acompanhar cada fase com conforto.',
+      'Modelos infantis delicados e acolhedores, pensados para acompanhar cada fase com conforto, leveza e charme.',
     image:
       'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?auto=format&fit=crop&w=1200&q=80',
   },
@@ -33,7 +33,7 @@ export const categories = [
     name: 'Camiseta Infantil',
     short: 'Infantil Masculino',
     description:
-      'Modelos infantis versáteis, confortáveis e estilosos para diferentes momentos do dia.',
+      'Peças infantis versáteis, bonitas e confortáveis para compor uma rotina leve, prática e cheia de identidade.',
     image:
       'https://images.unsplash.com/photo-1503919545889-aef636e10ad4?auto=format&fit=crop&w=1200&q=80',
   },
@@ -42,7 +42,7 @@ export const categories = [
     name: 'Body para Bebês',
     short: 'Bebês',
     description:
-      'Bodies macios e delicados para os pequenos, com charme, conforto e toque especial.',
+      'Bodies suaves e delicados para os pequenos, com toque acolhedor, conforto diário e uma apresentação encantadora.',
     image:
       'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=1200&q=80',
   },
@@ -86,7 +86,7 @@ export const products = [
       'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=80',
     description:
       'Camiseta moderna com visual limpo e tecido confortável para diferentes ocasiões.',
-    sizes: ['P', 'M', 'G', 'GG', 'XG'],
+    sizes: ['P', 'M', 'G', 'GG'],
   },
   {
     id: 4,
@@ -99,7 +99,7 @@ export const products = [
       'https://images.unsplash.com/photo-1516826957135-700dedea698c?auto=format&fit=crop&w=1200&q=80',
     description:
       'Visual versátil com toque premium para homens que valorizam simplicidade e identidade.',
-    sizes: ['P', 'M', 'G', 'GG', 'XG'],
+    sizes: ['P', 'M', 'G', 'GG'],
   },
   {
     id: 5,
@@ -111,8 +111,8 @@ export const products = [
     image:
       'https://images.unsplash.com/photo-1519238359922-989348752efb?auto=format&fit=crop&w=1200&q=80',
     description:
-      'Peça infantil delicada, colorida e confortável para acompanhar cada descoberta.',
-    sizes: ['2', '4', '6', '8', '10'],
+      'Peça infantil delicada, confortável e pensada para acompanhar cada descoberta com leveza.',
+    sizes: ['P', 'M', 'G', 'GG'],
   },
   {
     id: 6,
@@ -125,7 +125,7 @@ export const products = [
       'https://images.unsplash.com/photo-1519345182560-3f2917c472efb?auto=format&fit=crop&w=1200&q=80',
     description:
       'Camiseta infantil resistente, confortável e prática para o dia a dia dos pequenos.',
-    sizes: ['2', '4', '6', '8', '10'],
+    sizes: ['P', 'M', 'G', 'GG'],
   },
   {
     id: 7,
@@ -138,7 +138,7 @@ export const products = [
       'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?auto=format&fit=crop&w=1200&q=80',
     description:
       'Body macio e delicado pensado para oferecer conforto e cuidado ao bebê.',
-    sizes: ['RN', 'P', 'M', 'G'],
+    sizes: ['P', 'M', 'G', 'GG'],
   },
   {
     id: 8,
@@ -151,24 +151,40 @@ export const products = [
       'https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?auto=format&fit=crop&w=1200&q=80',
     description:
       'Toque suave, visual delicado e praticidade para a rotina do bebê com muito charme.',
-    sizes: ['RN', 'P', 'M', 'G'],
+    sizes: ['P', 'M', 'G', 'GG'],
   },
 ]
 
 export const testimonials = [
   {
     name: 'Fernanda L.',
-    text: 'O site ficou lindo no celular, muito fácil de comprar e as peças chegaram do jeitinho que eu esperava.',
+    text: 'A loja transmite delicadeza e confiança. A navegação ficou muito agradável e as peças chamam atenção logo de início.',
   },
   {
     name: 'Rafael M.',
-    text: 'Comprei camisetas masculinas e gostei muito da organização da loja. Passa profissionalismo e confiança.',
+    text: 'Gostei da organização do catálogo e da identidade visual. O site passa mais profissionalismo e facilita a compra.',
   },
   {
     name: 'Priscila A.',
-    text: 'A identidade da marca ficou delicada e elegante. Os produtos infantis me encantaram logo na primeira visita.',
+    text: 'A proposta da marca ficou muito bonita, acolhedora e elegante. É o tipo de loja que convida a continuar navegando.',
   },
 ]
+
+const SIZE_ORDER = ['P', 'M', 'G', 'GG', 'G1', 'G2', 'G3']
+
+export function sortSizes(sizes = []) {
+  if (!Array.isArray(sizes)) return []
+
+  return [...sizes].sort((a, b) => {
+    const indexA = SIZE_ORDER.indexOf(a)
+    const indexB = SIZE_ORDER.indexOf(b)
+
+    const safeIndexA = indexA === -1 ? 999 : indexA
+    const safeIndexB = indexB === -1 ? 999 : indexB
+
+    return safeIndexA - safeIndexB
+  })
+}
 
 export function formatPrice(value) {
   return Number(value || 0).toLocaleString('pt-BR', {
@@ -190,22 +206,16 @@ export function getCategoryShortName(categoryId) {
 }
 
 export function normalizeProductFromDatabase(product) {
-  const imageUrl =
-    product.image_url ||
-    product.image ||
-    'https://placehold.co/1200x1200?text=Produto'
-
   return {
     id: product.id,
-    name: product.name || product.title || '',
+    name: product.title || '',
     category: product.category || '',
     price: Number(product.price || 0),
-    oldPrice: Number(product.compare_price || product.oldPrice || 0),
-    badge: product.badge || (product.featured ? 'Destaque' : 'Produto'),
-    image: imageUrl,
-    image_url: imageUrl,
+    oldPrice: Number(product.compare_price || 0),
+    badge: product.badge || 'Produto',
+    image: product.image_url || 'https://placehold.co/1200x1200?text=Produto',
     description: product.description || '',
-    sizes: Array.isArray(product.sizes) ? product.sizes : [],
+    sizes: sortSizes(Array.isArray(product.sizes) ? product.sizes : []),
     featured: !!product.featured,
     active: product.active ?? true,
     stock: Number(product.stock || 0),
