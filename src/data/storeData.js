@@ -61,97 +61,8 @@ export const products = [
     description:
       'Modelagem confortável, tecido leve e visual delicado para um look feminino com propósito.',
     sizes: ['P', 'M', 'G', 'GG'],
-  },
-  {
-    id: 2,
-    name: 'Baby Look Toque de Paz',
-    category: 'baby-look-feminina',
-    price: 64.9,
-    oldPrice: 79.9,
-    badge: 'Novo',
-    image:
-      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80',
-    description:
-      'Peça leve com caimento bonito e excelente para composições femininas do cotidiano.',
-    sizes: ['P', 'M', 'G', 'GG'],
-  },
-  {
-    id: 3,
-    name: 'Camiseta Masculina Propósito',
-    category: 'camiseta-masculina',
-    price: 69.9,
-    oldPrice: 84.9,
-    badge: 'Destaque',
-    image:
-      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=80',
-    description:
-      'Camiseta moderna com visual limpo e tecido confortável para diferentes ocasiões.',
-    sizes: ['P', 'M', 'G', 'GG'],
-  },
-  {
-    id: 4,
-    name: 'Camiseta Masculina Essência',
-    category: 'camiseta-masculina',
-    price: 72.9,
-    oldPrice: 89.9,
-    badge: 'Favorita',
-    image:
-      'https://images.unsplash.com/photo-1516826957135-700dedea698c?auto=format&fit=crop&w=1200&q=80',
-    description:
-      'Visual versátil com toque premium para homens que valorizam simplicidade e identidade.',
-    sizes: ['P', 'M', 'G', 'GG'],
-  },
-  {
-    id: 5,
-    name: 'Baby Look Infantil Jardim de Luz',
-    category: 'baby-look-infantil',
-    price: 49.9,
-    oldPrice: 59.9,
-    badge: 'Infantil',
-    image:
-      'https://images.unsplash.com/photo-1519238359922-989348752efb?auto=format&fit=crop&w=1200&q=80',
-    description:
-      'Peça infantil delicada, confortável e pensada para acompanhar cada descoberta com leveza.',
-    sizes: ['P', 'M', 'G', 'GG'],
-  },
-  {
-    id: 6,
-    name: 'Camiseta Infantil Caminho',
-    category: 'camiseta-infantil',
-    price: 52.9,
-    oldPrice: 64.9,
-    badge: 'Infantil',
-    image:
-      'https://images.unsplash.com/photo-1519345182560-3f2917c472efb?auto=format&fit=crop&w=1200&q=80',
-    description:
-      'Camiseta infantil resistente, confortável e prática para o dia a dia dos pequenos.',
-    sizes: ['P', 'M', 'G', 'GG'],
-  },
-  {
-    id: 7,
-    name: 'Body Bebê Benção',
-    category: 'body-bebe',
-    price: 44.9,
-    oldPrice: 54.9,
-    badge: 'Bebês',
-    image:
-      'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?auto=format&fit=crop&w=1200&q=80',
-    description:
-      'Body macio e delicado pensado para oferecer conforto e cuidado ao bebê.',
-    sizes: ['P', 'M', 'G', 'GG'],
-  },
-  {
-    id: 8,
-    name: 'Body Bebê Promessa',
-    category: 'body-bebe',
-    price: 46.9,
-    oldPrice: 57.9,
-    badge: 'Novo',
-    image:
-      'https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?auto=format&fit=crop&w=1200&q=80',
-    description:
-      'Toque suave, visual delicado e praticidade para a rotina do bebê com muito charme.',
-    sizes: ['P', 'M', 'G', 'GG'],
+    measurements:
+      'P — Largura: 46 cm | Comprimento: 62 cm\nM — Largura: 48 cm | Comprimento: 64 cm\nG — Largura: 50 cm | Comprimento: 66 cm\nGG — Largura: 53 cm | Comprimento: 69 cm',
   },
 ]
 
@@ -215,6 +126,7 @@ export function normalizeProductFromDatabase(product) {
     badge: product.badge || 'Produto',
     image: product.image_url || 'https://placehold.co/1200x1200?text=Produto',
     description: product.description || '',
+    measurements: product.measurements || '',
     sizes: sortSizes(Array.isArray(product.sizes) ? product.sizes : []),
     featured: !!product.featured,
     active: product.active ?? true,

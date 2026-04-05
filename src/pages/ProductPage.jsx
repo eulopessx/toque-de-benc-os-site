@@ -25,6 +25,14 @@ function SelectableSizePill({ children, active, onClick }) {
   )
 }
 
+function MeasurementLine({ children }) {
+  return (
+    <div className="rounded-2xl border border-[#e7dccf] bg-[#fbf8f4] px-4 py-3 text-sm font-medium leading-6 text-[#4f6172]">
+      {children}
+    </div>
+  )
+}
+
 export default function ProductPage() {
   const { id } = useParams()
   const { addToCart } = useCart()
@@ -77,6 +85,13 @@ export default function ProductPage() {
   const imageSrc = useMemo(() => {
     return product?.image_url || product?.image || '/placeholder-product.jpg'
   }, [product])
+
+  const measurementLines = useMemo(() => {
+    return String(product?.measurements || '')
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+  }, [product?.measurements])
 
   if (loading) {
     return (
@@ -203,6 +218,23 @@ export default function ProductPage() {
                   Selecione o tamanho desejado para continuar.
                 </p>
               )}
+            </div>
+          ) : null}
+
+          {measurementLines.length > 0 ? (
+            <div className="mt-8 rounded-[1.5rem] border border-[#ddd0c1] bg-white p-5 shadow-[0_8px_18px_rgba(36,56,77,0.03)]">
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a835f]">
+                Guia de medidas
+              </div>
+              <p className="mt-3 text-sm leading-7 text-[#5d6d7d]">
+                Consulte as medidas da peça para escolher o tamanho com mais segurança e conforto.
+              </p>
+
+              <div className="mt-4 space-y-3">
+                {measurementLines.map((line, index) => (
+                  <MeasurementLine key={`${line}-${index}`}>{line}</MeasurementLine>
+                ))}
+              </div>
             </div>
           ) : null}
 

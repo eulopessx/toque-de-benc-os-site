@@ -14,6 +14,7 @@ const emptyForm = {
   badge: '',
   image_url: '',
   description: '',
+  measurements: '',
   sizes: [],
   stock: '',
   featured: false,
@@ -254,6 +255,7 @@ export default function AdminDashboardPage() {
         image_url: finalImageUrl,
         image: finalImageUrl,
         description: form.description.trim(),
+        measurements: form.measurements.trim(),
         stock: Number(form.stock) || 0,
         featured: form.featured,
         active: form.active,
@@ -312,6 +314,7 @@ export default function AdminDashboardPage() {
       badge: product.badge || '',
       image_url: product.image_url || product.image || '',
       description: product.description || '',
+      measurements: product.measurements || '',
       sizes: Array.isArray(product.sizes) ? product.sizes : [],
       stock: product.stock || '',
       featured: !!product.featured,
@@ -375,7 +378,7 @@ export default function AdminDashboardPage() {
                 {editingId ? 'Editar produto' : 'Novo produto'}
               </h2>
               <p className="mt-2 text-sm text-[#5d6d7d]">
-                Cadastre produtos, envie imagem e mantenha o catálogo da loja sempre atualizado.
+                Cadastre produtos, envie imagem, informe medidas e mantenha o catálogo da loja sempre atualizado.
               </p>
             </div>
 
@@ -515,6 +518,24 @@ export default function AdminDashboardPage() {
                 placeholder="Descreva a peça com um texto elegante, acolhedor e alinhado à proposta católica da loja."
                 className="min-h-[120px] w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
               />
+            </div>
+
+            <div>
+              <FieldLabel>Guia de medidas</FieldLabel>
+              <textarea
+                name="measurements"
+                value={form.measurements}
+                onChange={handleChange}
+                placeholder={`Ex.:
+P — Largura: 46 cm | Comprimento: 62 cm
+M — Largura: 48 cm | Comprimento: 64 cm
+G — Largura: 50 cm | Comprimento: 66 cm
+GG — Largura: 53 cm | Comprimento: 69 cm`}
+                className="min-h-[140px] w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
+              />
+              <p className="mt-2 text-sm leading-6 text-[#6d7a88]">
+                Informe as medidas de forma clara para ajudar o cliente a escolher o tamanho com mais segurança.
+              </p>
             </div>
 
             <div>
