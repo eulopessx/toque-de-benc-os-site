@@ -173,7 +173,9 @@ function saveMeasurementTemplate(category, measurementsMap) {
 }
 
 function hasAnyMeasurementFilled(measurementsMap) {
-  return Object.values(measurementsMap || {}).some((item) => item.width || item.length || item.sleeve)
+  return Object.values(measurementsMap || {}).some(
+    (item) => item.width || item.length || item.sleeve
+  )
 }
 
 function hasMeasurementDataForSize(entry) {
@@ -181,7 +183,6 @@ function hasMeasurementDataForSize(entry) {
 }
 
 function ProductCategoryAccordion({
-  categoryId,
   categoryName,
   products,
   isOpen,
@@ -219,7 +220,11 @@ function ProductCategoryAccordion({
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex gap-4">
                   <img
-                    src={product.image_url || product.image || 'https://placehold.co/240x240?text=Produto'}
+                    src={
+                      product.image_url ||
+                      product.image ||
+                      'https://placehold.co/240x240?text=Produto'
+                    }
                     alt={product.title || product.name}
                     className="h-24 w-24 rounded-[1rem] object-cover"
                   />
@@ -278,11 +283,14 @@ function ProductCategoryAccordion({
 export default function AdminDashboardPage() {
   const [products, setProducts] = useState([])
   const [reviews, setReviews] = useState([])
-  const [activeProductCategory, setActiveProductCategory] = useState('all')
+  const [activeProductCategory, setActiveProductCategory] = useState(null)
+
   const [form, setForm] = useState(() => {
     try {
       const savedDraft = localStorage.getItem(ADMIN_PRODUCT_DRAFT_KEY)
-      if (!savedDraft) return { ...emptyForm, measurementsMap: createEmptyMeasurementsMap() }
+      if (!savedDraft) {
+        return { ...emptyForm, measurementsMap: createEmptyMeasurementsMap() }
+      }
 
       const parsed = JSON.parse(savedDraft)
 
@@ -396,7 +404,10 @@ export default function AdminDashboardPage() {
         const savedSizeData = savedTemplate?.[size]
         const currentSizeData = prev.measurementsMap?.[size]
 
-        if (hasMeasurementDataForSize(savedSizeData) && !hasMeasurementDataForSize(currentSizeData)) {
+        if (
+          hasMeasurementDataForSize(savedSizeData) &&
+          !hasMeasurementDataForSize(currentSizeData)
+        ) {
           nextMeasurementsMap = {
             ...prev.measurementsMap,
             [size]: { ...savedSizeData },
@@ -508,15 +519,17 @@ export default function AdminDashboardPage() {
     const groups = {}
 
     categories.forEach((category) => {
-      groups[category.id] = {
-        id: category.id,
+      const normalizedId = String(category.id || '').trim().toLowerCase()
+
+      groups[normalizedId] = {
+        id: normalizedId,
         name: category.name,
         products: [],
       }
     })
 
     filteredProducts.forEach((product) => {
-      const categoryId = product.category || 'sem-categoria'
+      const categoryId = String(product.category || 'sem-categoria').trim().toLowerCase()
 
       if (!groups[categoryId]) {
         groups[categoryId] = {
@@ -564,6 +577,20 @@ export default function AdminDashboardPage() {
     }
   }, [selectedImageFile, previewImage])
 
+  useEffect(() => {
+    if (groupedProducts.length > 0 && !activeProductCategory) {
+      setActiveProductCategory(groupedProducts[0].id)
+    }
+
+    if (
+      activeProductCategory &&
+      groupedProducts.length > 0 &&
+      !groupedProducts.some((group) => group.id === activeProductCategory)
+    ) {
+      setActiveProductCategory(groupedProducts[0].id)
+    }
+  }, [groupedProducts, activeProductCategory])
+
   async function handleSubmit(e) {
     e.preventDefault()
     setSaving(true)
@@ -608,7 +635,7 @@ export default function AdminDashboardPage() {
         title: cleanTitle,
         name: cleanTitle,
         slug: finalSlug,
-        category: form.category.trim(),
+        category: form.category.trim().toLowerCase(),
         price: Number(form.price) || 0,
         compare_price: form.compare_price ? Number(form.compare_price) : null,
         old_price: form.compare_price ? Number(form.compare_price) : null,
@@ -673,7 +700,7 @@ export default function AdminDashboardPage() {
 
     setForm({
       title: product.title || product.name || '',
-      category: product.category || '',
+      category: String(product.category || '').trim().toLowerCase(),
       price: product.price || '',
       compare_price: product.compare_price || product.old_price || '',
       badge: product.badge || '',
@@ -1004,21 +1031,27 @@ export default function AdminDashboardPage() {
                           <MeasurementInput
                             label="Largura"
                             value={current.width}
-                            onChange={(e) => handleMeasurementChange(size, 'width', e.target.value)}
+                            onChange={(e) =>
+                              handleMeasurementChange(size, 'width', e.target.value)
+                            }
                             placeholder="Ex.: 46 cm"
                           />
 
                           <MeasurementInput
                             label="Comprimento"
                             value={current.length}
-                            onChange={(e) => handleMeasurementChange(size, 'length', e.target.value)}
+                            onChange={(e) =>
+                              handleMeasurementChange(size, 'length', e.target.value)
+                            }
                             placeholder="Ex.: 62 cm"
                           />
 
                           <MeasurementInput
                             label="Manga"
                             value={current.sleeve}
-                            onChange={(e) => handleMeasurementChange(size, 'sleeve', e.target.value)}
+                            onChange={(e) =>
+                              handleMeasurementChange(size, 'sleeve', e.target.value)
+                            }
                             placeholder="Ex.: 18 cm"
                           />
                         </div>
@@ -1135,12 +1168,13 @@ export default function AdminDashboardPage() {
               {groupedProducts.map((group) => (
                 <ProductCategoryAccordion
                   key={group.id}
-                  categoryId={group.id}
                   categoryName={group.name}
                   products={group.products}
                   isOpen={activeProductCategory === group.id}
                   onToggle={() =>
-                    setActiveProductCategory((prev) => (prev === group.id ? 'all' : group.id))
+                    setActiveProductCategory((prev) =>
+                      prev === group.id ? null : group.id
+                    )
                   }
                   onEdit={startEdit}
                   onDelete={handleDelete}
