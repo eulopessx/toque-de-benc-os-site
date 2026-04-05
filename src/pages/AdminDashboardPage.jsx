@@ -3,17 +3,20 @@ import { supabase } from '../lib/supabaseClient'
 import { categories, formatPrice, sortSizes } from '../data/storeData'
 
 const ADMIN_PRODUCT_DRAFT_KEY = 'toque-admin-product-draft'
+const MEASUREMENTS_TEMPLATE_STORAGE_KEY = 'toque-admin-measurement-templates'
 const STORAGE_BUCKET = 'product-images'
 const SIZE_OPTIONS = ['P', 'M', 'G', 'GG', 'G1', 'G2', 'G3']
 
-const emptyMeasurements = {
-  P: { width: '', length: '', sleeve: '' },
-  M: { width: '', length: '', sleeve: '' },
-  G: { width: '', length: '', sleeve: '' },
-  GG: { width: '', length: '', sleeve: '' },
-  G1: { width: '', length: '', sleeve: '' },
-  G2: { width: '', length: '', sleeve: '' },
-  G3: { width: '', length: '', sleeve: '' },
+function createEmptyMeasurementsMap() {
+  return {
+    P: { width: '', length: '', sleeve: '' },
+    M: { width: '', length: '', sleeve: '' },
+    G: { width: '', length: '', sleeve: '' },
+    GG: { width: '', length: '', sleeve: '' },
+    G1: { width: '', length: '', sleeve: '' },
+    G2: { width: '', length: '', sleeve: '' },
+    G3: { width: '', length: '', sleeve: '' },
+  }
 }
 
 const emptyForm = {
@@ -28,7 +31,7 @@ const emptyForm = {
   stock: '',
   featured: false,
   active: true,
-  measurementsMap: emptyMeasurements,
+  measurementsMap: createEmptyMeasurementsMap(),
 }
 
 function FieldLabel({ children }) {
@@ -71,18 +74,6 @@ function isValidHttpUrl(value) {
     return url.protocol === 'http:' || url.protocol === 'https:'
   } catch {
     return false
-  }
-}
-
-function createEmptyMeasurementsMap() {
-  return {
-    P: { width: '', length: '', sleeve: '' },
-    M: { width: '', length: '', sleeve: '' },
-    G: { width: '', length: '', sleeve: '' },
-    GG: { width: '', length: '', sleeve: '' },
-    G1: { width: '', length: '', sleeve: '' },
-    G2: { width: '', length: '', sleeve: '' },
-    G3: { width: '', length: '', sleeve: '' },
   }
 }
 
@@ -165,6 +156,33 @@ function MeasurementInput({ label, value, onChange, placeholder }) {
   )
 }
 
+function getSavedMeasurementTemplates() {
+  try {
+    const saved = localStorage.getItem(MEASUREMENTS_TEMPLATE_STORAGE_KEY)
+    return saved ? JSON.parse(saved) : {}
+  } catch {
+    return {}
+  }
+}
+
+function saveMeasurementTemplate(category, measurementsMap) {
+  if (!category) return
+
+  const templates = getSavedMeasurementTemplates()
+  templates[category] = measurementsMap
+  localStorage.setItem(MEASUREMENTS_TEMPLATE_STORAGE_KEY, JSON.stringify(templates))
+}
+
+function hasAnyMeasurementFilled(measurementsMap) {
+  return Object.values(measurementsMap || {}).some((item) => {
+    return item.width || item.length || item.sleeve
+  })
+}
+
+function hasMeasurementDataForSize(entry) {
+  return !!(entry?.width || entry?.length || entry?.sleeve)
+}
+
 export default function AdminDashboardPage() {
   const [products, setProducts] = useState([])
   const [form, setForm] = useState(() => {
@@ -228,6 +246,23 @@ export default function AdminDashboardPage() {
     }))
   }
 
+  function handleCategoryChange(e) {
+    const nextCategory = e.target.value
+    const templates = getSavedMeasurementTemplates()
+    const savedTemplate = templates[nextCategory]
+
+    setForm((prev) => {
+      const shouldApplyTemplate =
+        !hasAnyMeasurementFilled(prev.measurementsMap) && savedTemplate
+
+      return {
+        ...prev,
+        category: nextCategory,
+        measurementsMap: shouldApplyTemplate ? savedTemplate : prev.measurementsMap,
+      }
+    })
+  }
+
   function handleSizeToggle(size) {
     setForm((prev) => {
       const exists = prev.sizes.includes(size)
@@ -235,9 +270,26 @@ export default function AdminDashboardPage() {
         ? prev.sizes.filter((item) => item !== size)
         : sortSizes([...prev.sizes, size])
 
+      let nextMeasurementsMap = prev.measurementsMap
+
+      if (!exists && prev.category) {
+        const templates = getSavedMeasurementTemplates()
+        const savedTemplate = templates[prev.category]
+        const savedSizeData = savedTemplate?.[size]
+        const currentSizeData = prev.measurementsMap?.[size]
+
+        if (hasMeasurementDataForSize(savedSizeData) && !hasMeasurementDataForSize(currentSizeData)) {
+          nextMeasurementsMap = {
+            ...prev.measurementsMap,
+            [size]: { ...savedSizeData },
+          }
+        }
+      }
+
       return {
         ...prev,
         sizes: nextSizes,
+        measurementsMap: nextMeasurementsMap,
       }
     })
   }
@@ -253,6 +305,28 @@ export default function AdminDashboardPage() {
         },
       },
     }))
+  }
+
+  function applySavedTemplate() {
+    if (!form.category) {
+      setMessage('Selecione uma categoria antes de carregar medidas salvas.')
+      return
+    }
+
+    const templates = getSavedMeasurementTemplates()
+    const savedTemplate = templates[form.category]
+
+    if (!savedTemplate) {
+      setMessage('Ainda não existem medidas salvas para esta categoria.')
+      return
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      measurementsMap: savedTemplate,
+    }))
+
+    setMessage('Medidas salvas da categoria carregadas com sucesso.')
   }
 
   function handleFileChange(e) {
@@ -418,6 +492,8 @@ export default function AdminDashboardPage() {
         setMessage('Produto cadastrado com sucesso.')
       }
 
+      saveMeasurementTemplate(form.category, form.measurementsMap)
+
       setForm({ ...emptyForm, measurementsMap: createEmptyMeasurementsMap() })
       setEditingId(null)
       setSelectedImageFile(null)
@@ -534,7 +610,7 @@ export default function AdminDashboardPage() {
                 <select
                   name="category"
                   value={form.category}
-                  onChange={handleChange}
+                  onChange={handleCategoryChange}
                   className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
                 >
                   <option value="">Selecione uma categoria</option>
@@ -677,12 +753,24 @@ export default function AdminDashboardPage() {
 
             {form.sizes.length > 0 ? (
               <div className="rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-5">
-                <div className="text-sm font-semibold text-[#24384d]">
-                  Guia de medidas por tamanho
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="text-sm font-semibold text-[#24384d]">
+                      Guia de medidas por tamanho
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-[#6d7a88]">
+                      As medidas salvas da categoria podem ser reaproveitadas automaticamente conforme você marca os tamanhos.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={applySavedTemplate}
+                    className="rounded-full border border-[#d8cbb9] bg-white px-4 py-2 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cbb9a3] hover:bg-[#fcfaf7]"
+                  >
+                    Usar medidas salvas
+                  </button>
                 </div>
-                <p className="mt-2 text-sm leading-6 text-[#6d7a88]">
-                  Preencha as medidas apenas dos tamanhos selecionados. O site monta automaticamente a tabela de medidas para o cliente.
-                </p>
 
                 <div className="mt-5 space-y-5">
                   {form.sizes.map((size) => {
