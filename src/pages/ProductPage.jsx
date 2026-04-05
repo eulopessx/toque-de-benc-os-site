@@ -25,12 +25,61 @@ function SelectableSizePill({ children, active, onClick }) {
   )
 }
 
-function MeasurementLine({ children }) {
-  return (
-    <div className="rounded-2xl border border-[#e7dccf] bg-[#fbf8f4] px-4 py-3 text-sm font-medium leading-6 text-[#4f6172]">
-      {children}
-    </div>
-  )
+function parseMeasurementsTable(measurementsText = '') {
+  return String(measurementsText)
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [sizePart, restPart = ''] = line.split('—')
+      const size = sizePart?.trim() || ''
+      const pieces = restPart
+        .split('|')
+        .map((item) => item.trim())
+        .filter(Boolean)
+
+      const data = {
+        size,
+        width: '',
+        length: '',
+        sleeve: '',
+        other: [],
+      }
+
+      pieces.forEach((piece) => {
+        const [labelRaw, valueRaw = ''] = piece.split(':')
+        const label = labelRaw?.trim().toLowerCase()
+        const value = valueRaw?.trim()
+
+        if (!label || !value) {
+          data.other.push(piece)
+          return
+        }
+
+        if (label.includes('largura')) {
+          data.width = value
+          return
+        }
+
+        if (label.includes('comprimento')) {
+          data.length = value
+          return
+        }
+
+        if (
+          label.includes('manga') ||
+          label.includes('mangas') ||
+          label.includes('sleeve')
+        ) {
+          data.sleeve = value
+          return
+        }
+
+        data.other.push(piece)
+      })
+
+      return data
+    })
 }
 
 export default function ProductPage() {
@@ -86,12 +135,17 @@ export default function ProductPage() {
     return product?.image_url || product?.image || '/placeholder-product.jpg'
   }, [product])
 
-  const measurementLines = useMemo(() => {
-    return String(product?.measurements || '')
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean)
+  const measurementsTable = useMemo(() => {
+    return parseMeasurementsTable(product?.measurements || '')
   }, [product?.measurements])
+
+  const hasSleeveColumn = useMemo(() => {
+    return measurementsTable.some((item) => item.sleeve)
+  }, [measurementsTable])
+
+  const hasOtherInfo = useMemo(() => {
+    return measurementsTable.some((item) => item.other.length > 0)
+  }, [measurementsTable])
 
   if (loading) {
     return (
@@ -221,7 +275,7 @@ export default function ProductPage() {
             </div>
           ) : null}
 
-          {measurementLines.length > 0 ? (
+          {measurementsTable.length > 0 ? (
             <div className="mt-8 rounded-[1.5rem] border border-[#ddd0c1] bg-white p-5 shadow-[0_8px_18px_rgba(36,56,77,0.03)]">
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9a835f]">
                 Guia de medidas
@@ -230,10 +284,63 @@ export default function ProductPage() {
                 Consulte as medidas da peça para escolher o tamanho com mais segurança e conforto.
               </p>
 
-              <div className="mt-4 space-y-3">
-                {measurementLines.map((line, index) => (
-                  <MeasurementLine key={`${line}-${index}`}>{line}</MeasurementLine>
-                ))}
+              <div className="mt-5 overflow-hidden rounded-[1.25rem] border border-[#e4d8c9]">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full border-collapse">
+                    <thead>
+                      <tr className="bg-[#fbf8f4] text-left">
+                        <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#9a835f]">
+                          Tamanho
+                        </th>
+                        <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#9a835f]">
+                          Largura
+                        </th>
+                        <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#9a835f]">
+                          Comprimento
+                        </th>
+                        {hasSleeveColumn ? (
+                          <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#9a835f]">
+                            Manga
+                          </th>
+                        ) : null}
+                        {hasOtherInfo ? (
+                          <th className="px-4 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#9a835f]">
+                            Observações
+                          </th>
+                        ) : null}
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {measurementsTable.map((item, index) => (
+                        <tr
+                          key={`${item.size}-${index}`}
+                          className="border-t border-[#efe5d8] bg-white"
+                        >
+                          <td className="px-4 py-4 text-sm font-semibold text-[#24384d]">
+                            {item.size || '—'}
+                          </td>
+                          <td className="px-4 py-4 text-sm text-[#526374]">
+                            {item.width || '—'}
+                          </td>
+                          <td className="px-4 py-4 text-sm text-[#526374]">
+                            {item.length || '—'}
+                          </td>
+                          {hasSleeveColumn ? (
+                            <td className="px-4 py-4 text-sm text-[#526374]">
+                              {item.sleeve || '—'}
+                            </td>
+                          ) : null}
+                          {hasOtherInfo ? (
+                            <td className="px-4 py-4 text-sm text-[#526374]">
+                              {item.other.length > 0 ? item.other.join(' | ') : '—'}
+                            </td>
+                          ) : null}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           ) : null}

@@ -1,10 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { categories, formatPrice } from '../data/storeData'
+import { categories, formatPrice, sortSizes } from '../data/storeData'
 
 const ADMIN_PRODUCT_DRAFT_KEY = 'toque-admin-product-draft'
 const STORAGE_BUCKET = 'product-images'
 const SIZE_OPTIONS = ['P', 'M', 'G', 'GG', 'G1', 'G2', 'G3']
+
+const emptyMeasurements = {
+  P: { width: '', length: '', sleeve: '' },
+  M: { width: '', length: '', sleeve: '' },
+  G: { width: '', length: '', sleeve: '' },
+  GG: { width: '', length: '', sleeve: '' },
+  G1: { width: '', length: '', sleeve: '' },
+  G2: { width: '', length: '', sleeve: '' },
+  G3: { width: '', length: '', sleeve: '' },
+}
 
 const emptyForm = {
   title: '',
@@ -14,11 +24,11 @@ const emptyForm = {
   badge: '',
   image_url: '',
   description: '',
-  measurements: '',
   sizes: [],
   stock: '',
   featured: false,
   active: true,
+  measurementsMap: emptyMeasurements,
 }
 
 function FieldLabel({ children }) {
@@ -64,14 +74,114 @@ function isValidHttpUrl(value) {
   }
 }
 
+function createEmptyMeasurementsMap() {
+  return {
+    P: { width: '', length: '', sleeve: '' },
+    M: { width: '', length: '', sleeve: '' },
+    G: { width: '', length: '', sleeve: '' },
+    GG: { width: '', length: '', sleeve: '' },
+    G1: { width: '', length: '', sleeve: '' },
+    G2: { width: '', length: '', sleeve: '' },
+    G3: { width: '', length: '', sleeve: '' },
+  }
+}
+
+function buildMeasurementsText(selectedSizes, measurementsMap) {
+  return sortSizes(selectedSizes)
+    .map((size) => {
+      const current = measurementsMap[size] || { width: '', length: '', sleeve: '' }
+      const parts = []
+
+      if (current.width.trim()) {
+        parts.push(`Largura: ${current.width.trim()}`)
+      }
+
+      if (current.length.trim()) {
+        parts.push(`Comprimento: ${current.length.trim()}`)
+      }
+
+      if (current.sleeve.trim()) {
+        parts.push(`Manga: ${current.sleeve.trim()}`)
+      }
+
+      if (parts.length === 0) return ''
+
+      return `${size} — ${parts.join(' | ')}`
+    })
+    .filter(Boolean)
+    .join('\n')
+}
+
+function parseMeasurementsToMap(text = '') {
+  const map = createEmptyMeasurementsMap()
+
+  String(text)
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .forEach((line) => {
+      const [sizePart, restPart = ''] = line.split('—')
+      const size = sizePart?.trim()
+
+      if (!size || !map[size]) return
+
+      restPart
+        .split('|')
+        .map((piece) => piece.trim())
+        .filter(Boolean)
+        .forEach((piece) => {
+          const [labelRaw, valueRaw = ''] = piece.split(':')
+          const label = labelRaw?.trim().toLowerCase()
+          const value = valueRaw?.trim()
+
+          if (!label || !value) return
+
+          if (label.includes('largura')) {
+            map[size].width = value
+          } else if (label.includes('comprimento')) {
+            map[size].length = value
+          } else if (label.includes('manga')) {
+            map[size].sleeve = value
+          }
+        })
+    })
+
+  return map
+}
+
+function MeasurementInput({ label, value, onChange, placeholder }) {
+  return (
+    <div>
+      <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-[#9a835f]">
+        {label}
+      </label>
+      <input
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-3 text-sm text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
+      />
+    </div>
+  )
+}
+
 export default function AdminDashboardPage() {
   const [products, setProducts] = useState([])
   const [form, setForm] = useState(() => {
     try {
       const savedDraft = localStorage.getItem(ADMIN_PRODUCT_DRAFT_KEY)
-      return savedDraft ? JSON.parse(savedDraft) : emptyForm
+      if (!savedDraft) return { ...emptyForm, measurementsMap: createEmptyMeasurementsMap() }
+
+      const parsed = JSON.parse(savedDraft)
+
+      return {
+        ...emptyForm,
+        ...parsed,
+        sizes: Array.isArray(parsed.sizes) ? sortSizes(parsed.sizes) : [],
+        measurementsMap: parsed.measurementsMap || createEmptyMeasurementsMap(),
+      }
     } catch {
-      return emptyForm
+      return { ...emptyForm, measurementsMap: createEmptyMeasurementsMap() }
     }
   })
   const [editingId, setEditingId] = useState(null)
@@ -121,14 +231,28 @@ export default function AdminDashboardPage() {
   function handleSizeToggle(size) {
     setForm((prev) => {
       const exists = prev.sizes.includes(size)
+      const nextSizes = exists
+        ? prev.sizes.filter((item) => item !== size)
+        : sortSizes([...prev.sizes, size])
 
       return {
         ...prev,
-        sizes: exists
-          ? prev.sizes.filter((item) => item !== size)
-          : [...prev.sizes, size],
+        sizes: nextSizes,
       }
     })
+  }
+
+  function handleMeasurementChange(size, field, value) {
+    setForm((prev) => ({
+      ...prev,
+      measurementsMap: {
+        ...prev.measurementsMap,
+        [size]: {
+          ...prev.measurementsMap[size],
+          [field]: value,
+        },
+      },
+    }))
   }
 
   function handleFileChange(e) {
@@ -196,6 +320,10 @@ export default function AdminDashboardPage() {
     return form.image_url?.trim() || ''
   }, [selectedImageFile, form.image_url])
 
+  const measurementsPreviewText = useMemo(() => {
+    return buildMeasurementsText(form.sizes, form.measurementsMap)
+  }, [form.sizes, form.measurementsMap])
+
   useEffect(() => {
     return () => {
       if (selectedImageFile && previewImage?.startsWith('blob:')) {
@@ -255,12 +383,12 @@ export default function AdminDashboardPage() {
         image_url: finalImageUrl,
         image: finalImageUrl,
         description: form.description.trim(),
-        measurements: form.measurements.trim(),
+        measurements: measurementsPreviewText,
         stock: Number(form.stock) || 0,
         featured: form.featured,
         active: form.active,
         badge: form.badge.trim() || null,
-        sizes: form.sizes,
+        sizes: sortSizes(form.sizes),
       }
 
       if (editingId) {
@@ -290,7 +418,7 @@ export default function AdminDashboardPage() {
         setMessage('Produto cadastrado com sucesso.')
       }
 
-      setForm(emptyForm)
+      setForm({ ...emptyForm, measurementsMap: createEmptyMeasurementsMap() })
       setEditingId(null)
       setSelectedImageFile(null)
       localStorage.removeItem(ADMIN_PRODUCT_DRAFT_KEY)
@@ -306,6 +434,9 @@ export default function AdminDashboardPage() {
   function startEdit(product) {
     setEditingId(product.id)
     setSelectedImageFile(null)
+
+    const parsedMap = parseMeasurementsToMap(product.measurements || '')
+
     setForm({
       title: product.title || product.name || '',
       category: product.category || '',
@@ -314,11 +445,11 @@ export default function AdminDashboardPage() {
       badge: product.badge || '',
       image_url: product.image_url || product.image || '',
       description: product.description || '',
-      measurements: product.measurements || '',
-      sizes: Array.isArray(product.sizes) ? product.sizes : [],
+      sizes: Array.isArray(product.sizes) ? sortSizes(product.sizes) : [],
       stock: product.stock || '',
       featured: !!product.featured,
       active: product.active ?? true,
+      measurementsMap: parsedMap,
     })
 
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -350,7 +481,7 @@ export default function AdminDashboardPage() {
 
   function handleCancelEdit() {
     setEditingId(null)
-    setForm(emptyForm)
+    setForm({ ...emptyForm, measurementsMap: createEmptyMeasurementsMap() })
     setSelectedImageFile(null)
     setMessage('')
     localStorage.removeItem(ADMIN_PRODUCT_DRAFT_KEY)
@@ -393,7 +524,7 @@ export default function AdminDashboardPage() {
                 value={form.title}
                 onChange={handleChange}
                 placeholder="Ex.: Baby Look Nossa Senhora das Graças"
-                className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
+                className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
               />
             </div>
 
@@ -404,7 +535,7 @@ export default function AdminDashboardPage() {
                   name="category"
                   value={form.category}
                   onChange={handleChange}
-                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
+                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
                 >
                   <option value="">Selecione uma categoria</option>
                   {categories.map((category) => (
@@ -422,7 +553,7 @@ export default function AdminDashboardPage() {
                   value={form.badge}
                   onChange={handleChange}
                   placeholder="Ex.: Novo, Mais vendido"
-                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
+                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
                 />
               </div>
             </div>
@@ -435,7 +566,7 @@ export default function AdminDashboardPage() {
                   value={form.price}
                   onChange={handleChange}
                   placeholder="129.90"
-                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
+                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
                 />
               </div>
 
@@ -446,7 +577,7 @@ export default function AdminDashboardPage() {
                   value={form.compare_price}
                   onChange={handleChange}
                   placeholder="159.90"
-                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
+                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
                 />
               </div>
 
@@ -457,7 +588,7 @@ export default function AdminDashboardPage() {
                   value={form.stock}
                   onChange={handleChange}
                   placeholder="10"
-                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
+                  className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
                 />
               </div>
             </div>
@@ -484,7 +615,7 @@ export default function AdminDashboardPage() {
                 value={form.image_url}
                 onChange={handleChange}
                 placeholder="https://..."
-                className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
+                className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
               />
             </div>
 
@@ -516,26 +647,8 @@ export default function AdminDashboardPage() {
                 value={form.description}
                 onChange={handleChange}
                 placeholder="Descreva a peça com um texto elegante, acolhedor e alinhado à proposta católica da loja."
-                className="min-h-[120px] w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
+                className="min-h-[120px] w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)]"
               />
-            </div>
-
-            <div>
-              <FieldLabel>Guia de medidas</FieldLabel>
-              <textarea
-                name="measurements"
-                value={form.measurements}
-                onChange={handleChange}
-                placeholder={`Ex.:
-P — Largura: 46 cm | Comprimento: 62 cm
-M — Largura: 48 cm | Comprimento: 64 cm
-G — Largura: 50 cm | Comprimento: 66 cm
-GG — Largura: 53 cm | Comprimento: 69 cm`}
-                className="min-h-[140px] w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-4 text-[#24384d] outline-none"
-              />
-              <p className="mt-2 text-sm leading-6 text-[#6d7a88]">
-                Informe as medidas de forma clara para ajudar o cliente a escolher o tamanho com mais segurança.
-              </p>
             </div>
 
             <div>
@@ -549,10 +662,10 @@ GG — Largura: 53 cm | Comprimento: 69 cm`}
                       key={size}
                       type="button"
                       onClick={() => handleSizeToggle(size)}
-                      className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${
+                      className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-200 ease-out ${
                         active
-                          ? 'border-[#24384d] bg-[#24384d] text-white'
-                          : 'border-[#ddd0c1] bg-[#fbf8f4] text-[#24384d]'
+                          ? 'border-[#24384d] bg-[#24384d] text-white shadow-[0_12px_24px_rgba(36,56,77,0.14)]'
+                          : 'border-[#ddd0c1] bg-[#fbf8f4] text-[#24384d] hover:-translate-y-0.5 hover:border-[#ccbda9] hover:bg-white'
                       }`}
                     >
                       {active ? `✓ ${size}` : size}
@@ -562,8 +675,83 @@ GG — Largura: 53 cm | Comprimento: 69 cm`}
               </div>
             </div>
 
+            {form.sizes.length > 0 ? (
+              <div className="rounded-[1.5rem] border border-[#ddd0c1] bg-[#fbf8f4] p-5">
+                <div className="text-sm font-semibold text-[#24384d]">
+                  Guia de medidas por tamanho
+                </div>
+                <p className="mt-2 text-sm leading-6 text-[#6d7a88]">
+                  Preencha as medidas apenas dos tamanhos selecionados. O site monta automaticamente a tabela de medidas para o cliente.
+                </p>
+
+                <div className="mt-5 space-y-5">
+                  {form.sizes.map((size) => {
+                    const current = form.measurementsMap[size] || {
+                      width: '',
+                      length: '',
+                      sleeve: '',
+                    }
+
+                    return (
+                      <div
+                        key={size}
+                        className="rounded-[1.5rem] border border-[#e4d8c9] bg-white p-4"
+                      >
+                        <div className="mb-4 flex items-center justify-between gap-3">
+                          <div className="text-sm font-semibold text-[#24384d]">
+                            Tamanho {size}
+                          </div>
+                          <StatusBadge variant="muted">{size}</StatusBadge>
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <MeasurementInput
+                            label="Largura"
+                            value={current.width}
+                            onChange={(e) =>
+                              handleMeasurementChange(size, 'width', e.target.value)
+                            }
+                            placeholder="Ex.: 46 cm"
+                          />
+
+                          <MeasurementInput
+                            label="Comprimento"
+                            value={current.length}
+                            onChange={(e) =>
+                              handleMeasurementChange(size, 'length', e.target.value)
+                            }
+                            placeholder="Ex.: 62 cm"
+                          />
+
+                          <MeasurementInput
+                            label="Manga"
+                            value={current.sleeve}
+                            onChange={(e) =>
+                              handleMeasurementChange(size, 'sleeve', e.target.value)
+                            }
+                            placeholder="Ex.: 18 cm"
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {measurementsPreviewText ? (
+                  <div className="mt-5 rounded-[1.25rem] border border-[#e4d8c9] bg-[#fcfaf7] p-4">
+                    <div className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9a835f]">
+                      Prévia do texto gerado
+                    </div>
+                    <pre className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[#4f6172]">
+                      {measurementsPreviewText}
+                    </pre>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="flex items-center gap-3 rounded-2xl border border-[#ddd0c1] bg-[#fbf8f4] px-4 py-4 text-sm font-semibold text-[#24384d]">
+              <label className="flex items-center gap-3 rounded-2xl border border-[#ddd0c1] bg-[#fbf8f4] px-4 py-4 text-sm font-semibold text-[#24384d] shadow-[0_8px_18px_rgba(36,56,77,0.03)]">
                 <input
                   type="checkbox"
                   name="featured"
@@ -573,7 +761,7 @@ GG — Largura: 53 cm | Comprimento: 69 cm`}
                 Produto em destaque
               </label>
 
-              <label className="flex items-center gap-3 rounded-2xl border border-[#ddd0c1] bg-[#fbf8f4] px-4 py-4 text-sm font-semibold text-[#24384d]">
+              <label className="flex items-center gap-3 rounded-2xl border border-[#ddd0c1] bg-[#fbf8f4] px-4 py-4 text-sm font-semibold text-[#24384d] shadow-[0_8px_18px_rgba(36,56,77,0.03)]">
                 <input
                   type="checkbox"
                   name="active"
@@ -597,7 +785,7 @@ GG — Largura: 53 cm | Comprimento: 69 cm`}
               <button
                 type="submit"
                 disabled={saving || uploadingImage}
-                className="flex-1 rounded-2xl bg-[#24384d] px-5 py-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
+                className="flex-1 rounded-2xl bg-[#24384d] px-5 py-4 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(36,56,77,0.14)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#1d3042] hover:shadow-[0_18px_34px_rgba(36,56,77,0.24)] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {uploadingImage
                   ? 'Enviando imagem...'
@@ -612,7 +800,7 @@ GG — Largura: 53 cm | Comprimento: 69 cm`}
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="flex-1 rounded-2xl border border-[#d8cbb9] bg-white px-5 py-4 text-sm font-semibold text-[#24384d]"
+                  className="flex-1 rounded-2xl border border-[#d8cbb9] bg-white px-5 py-4 text-sm font-semibold text-[#24384d] shadow-[0_6px_14px_rgba(36,56,77,0.03)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#cbb9a3] hover:bg-[#fcfaf7] hover:shadow-[0_12px_24px_rgba(36,56,77,0.08)]"
                 >
                   Cancelar edição
                 </button>
@@ -642,7 +830,7 @@ GG — Largura: 53 cm | Comprimento: 69 cm`}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar produto"
-              className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-3 text-sm text-[#24384d] outline-none sm:max-w-[240px]"
+              className="w-full rounded-2xl border border-[#ddd0c1] bg-white px-4 py-3 text-sm text-[#24384d] outline-none transition-all duration-200 placeholder:text-[#8f97a1] hover:border-[#ccbda9] focus:border-[#24384d] focus:bg-[#fffdfa] focus:shadow-[0_0_0_4px_rgba(36,56,77,0.08)] sm:max-w-[240px]"
             />
           </div>
 
@@ -662,7 +850,11 @@ GG — Largura: 53 cm | Comprimento: 69 cm`}
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex gap-4">
                       <img
-                        src={product.image_url || product.image || 'https://placehold.co/240x240?text=Produto'}
+                        src={
+                          product.image_url ||
+                          product.image ||
+                          'https://placehold.co/240x240?text=Produto'
+                        }
                         alt={product.title || product.name}
                         className="h-24 w-24 rounded-[1rem] object-cover"
                       />
