@@ -64,8 +64,10 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function refreshAuthState() {
-    setLoading(true)
+  async function refreshAuthState({ silent = false } = {}) {
+    if (!silent) {
+      setLoading(true)
+    }
 
     try {
       const {
@@ -88,7 +90,9 @@ export function AuthProvider({ children }) {
       setUser(null)
       setProfile(null)
     } finally {
-      setLoading(false)
+      if (!silent) {
+        setLoading(false)
+      }
     }
   }
 
@@ -129,7 +133,7 @@ export function AuthProvider({ children }) {
       if (!mounted) return
 
       if (document.visibilityState === 'visible') {
-        await refreshAuthState()
+        await refreshAuthState({ silent: true })
       }
     }
 
